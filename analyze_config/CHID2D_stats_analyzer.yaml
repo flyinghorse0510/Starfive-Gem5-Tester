@@ -1,0 +1,83 @@
+include: []
+WORKERS: 32
+callback:
+  "analyze_read_bandwidth_latency": {file: "analyzer/CHID2D_analyzer", func: ["analyze_read_bandwidth", "analyze_read_latency", "dump_parameters"]}
+
+target:
+  "stats.txt":
+    numReads:
+      pattern: 'system.cpu(\d*).numReads( +)(\d+)'
+      location: [1, 3]
+      type: [int, int]
+
+    totalNumReads:
+      pattern: 'system.cpu(\d*).numReads( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+
+    numWrites:
+      pattern: 'system.cpu(\d*).numWrites( +)(\d+)'
+      location: [1, 3]
+      type: [int, int]
+
+    totalNumWrites:
+      pattern: 'system.cpu(\d*).numWrites( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+
+    ticksPerCycle:
+      pattern: 'system.clk_domain.clock( +)(\d+)'
+      location: [2]
+      type: [int]
+
+    simTicks:
+      pattern: 'simTicks( +)(\d+)'
+      location: [2]
+      type: [int]
+
+    simFreq:
+      pattern: 'simFreq( +)(\d+)'
+      location: [2]
+      type: [int]
+
+    hnfHit:
+      pattern: 'system.ruby.hnf(\d*).cntrl.cache.m_demand_hits( +)(\d+)'
+      location: [1, 3]
+      type: [int, int]
+
+    hnfMiss:
+      pattern: 'system.ruby.hnf(\d*).cntrl.cache.m_demand_misses( +)(\d+)'
+      location: [1, 3]
+      type: [int, int]
+
+    hostSeconds:
+      pattern: 'hostSeconds( +)(\d+)'
+      location: [2]
+      type: [int]
+
+    hostMemory:
+      pattern: 'hostMemory( +)(\d+)'
+      location: [2]
+      type: [int]
+
+summary:
+  "d2d_stats_analyzed":
+    - {data: "hostSeconds", head: "Run Time"}
+    - {data: "hostMemory", head: "Memory Usage"}
+    - {data: "num-dies", head: "Dies(total)"}
+    - {data: "numNormDirs", head: "Memory Controllers(per Die)"}
+    - {data: "numGenCpus", head: "CPUs(total generating)"}
+    - {data: "numNormL3caches", head: "LLCs(per Die)"}
+    - {data: "l1d_size", head: "L1d Size"}
+    - {data: "l1i_size", head: "L1i Size"}
+    - {data: "l2_size", head: "L2 Size"}
+    - {data: "l3_size", head: "L3 Size"}
+    - {data: "workset", head: "Working Set"}
+    - {data: "sfEntries", head: "Snoop-Filter Entries"}
+    - {data: "outstanding-req", head: "CPU Max-Outstanding"}
+    - {data: "accessRegion", head: "Region"}
+    - {data: "totalReadBandWidth", head: "Total Bandwidth(GBps)"}
+    - {data: "normReadBandwidth", head: "Average Bandwidth(GBps)"}
+    - {data: "readLatency", head: "Read Latency(Cycles)"}

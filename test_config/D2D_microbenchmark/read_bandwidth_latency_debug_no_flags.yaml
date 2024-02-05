@@ -1,0 +1,12 @@
+# Starfive Tester Base Config
+# *********************
+# [] represents an array, each element in which will be iterated and tested separately
+# i.e. num-cpus: [2,4], num-dirs: [2,4] means that there will be 4 tests in total
+# *********************
+
+# include other configuration files, included contents will be overwritten by this file if both fileds occur
+include: ["test_config/D2D_microbenchmark/read_bandwidth_latency_opt.yaml"]
+
+BUILDTYPE: "gem5.debug"
+WORKERS: 32
+debug_flags: []

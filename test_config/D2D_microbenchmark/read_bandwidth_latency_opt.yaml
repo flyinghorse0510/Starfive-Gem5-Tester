@@ -1,0 +1,40 @@
+# Starfive Tester Base Config
+# *********************
+# [] represents an array, each element in which will be iterated and tested separately
+# i.e. num-cpus: [2,4], num-dirs: [2,4] means that there will be 4 tests in total
+# *********************
+
+# include other configuration files, included contents will be overwritten by this file if both fileds occur
+include: ["test_config/D2D_microbenchmark/CHID2D_base.yaml"]
+
+analyzer: []
+BUILDTYPE: "gem5.opt"
+
+num-cpus: [32,16,8,4,2]
+# NUM_LLCs (total)
+num-l3caches: [32,16,8,4,2]
+mem-test-type: ["bw_test_sf"]
+maxloads: [1]                             # load factor (address space repeat times)
+size-ws: [65536]                          # working set size(Bytes), 64KiB
+block-stride-bits: [0]
+randomize-acc: [false]
+ratio-read-write: ["1-0"]
+# 1 for latency test, 10000 for bandwidth test
+outstanding-req: [1,10000]                  # max outstanding(concurrent) requests(cpu side)
+addr-intrlvd-or-tiled: [false]
+# Intra-Die Mask & Cross-Die Mask
+no-gen: ["1", "0"]
+base_addr_1: [0]
+# 0x0 7fff ffff ==> 2147483647
+# 0x1 0000 0000 ==> 4294967296
+# 0x1 7fff ffff ==> 6442450943
+
+#### SnoopFilter Directory
+num-snoopfilter-entries: [128]
+num-snoopfilter-assoc: [1]
+allow-infinite-SF-entries: [true, false]
+
+### Cache Size
+l3_size: ["16KiB"]
+
+debug_flags: ["MsgBufTrace", "SeqMemLatTest"]

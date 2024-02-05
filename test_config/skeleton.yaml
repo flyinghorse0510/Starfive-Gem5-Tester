@@ -1,0 +1,52 @@
+# Starfive Tester Base Config
+# *********************
+# [] represents an array, each element in which will be iterated and tested separately
+# i.e. num-cpus: [2,4], num-dirs: [2,4] means that there will be 4 tests in total
+# *********************
+
+# include other configuration files
+include: []
+
+## 1. Build & Runtime Configuration
+
+
+
+## 2. Topology Configuration
+relative_path_list:
+
+## 3. Network Configuration
+
+
+## 4. Benchmark-Specific Configuration
+### choose types of memory tests:
+#### bw_test_sf ==> seq2memtest
+#### memcpy_test ==> memcpytest
+# /（Default: None)
+
+## 5. Cache Configuration
+#### L1
+
+#### L2
+
+#### L3(LLC)
+
+#### SnoopFilter Directory
+
+
+## 6. Memory Configuration
+
+
+## 7. TBE Configuration
+
+
+## 8. Other Configuration
+python-config-exclusive-pars:
+
+## 9. Debug Flags
+debug_flags:                              # /（Default: None)
+
+
+## 10. Extra Flags
+#### will be directly appended to the gem5 python configs with '--' prefix
+#### e.g. ruby ==> --ruby
+extra_flags:
