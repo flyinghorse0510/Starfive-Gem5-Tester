@@ -119,7 +119,12 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
         runtimeConfig, "allow-infinite-SF-entries", 0
     )
     noGen = check_and_fetch_key(runtimeConfig, "no-gen", 0)
+    transmit_retryack = check_and_fetch_key(runtimeConfig, "transmit-retryack", 0)
+    link_lat = check_and_fetch_key(runtimeConfig, "d2d_traversal_latency", 0)
+    num_tx_remap = check_and_fetch_key(runtimeConfig, "num_txremap_entries", 0)
+    num_rx_remap = check_and_fetch_key(runtimeConfig, "num_rxremap_entries", 0)
     sfEntries = "Ideal" if allowInfiniteSFEntries else "Realistic"
+    TransmitRetryD2D = "Transmit" if transmit_retryack else "Absorb"
     numNormDirs = int(numDirs / numDies)
     numNormL3caches = int(numL3Caches / numDies)
     workset = str(int(sizeWs / 1024)) + "KiB"
@@ -134,10 +139,13 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
         "numNormDirs": numNormDirs,
         "numNormL3caches": numNormL3caches,
         "workset": workset,
-        "sfEntries": sfEntries,
+        "TransmitRetryD2D": TransmitRetryD2D,
         "accessRegion": accessRegion,
         "hostSeconds": hostSeconds,
-        "hostMemory": hostMemory
+        "hostMemory": hostMemory,
+        "link_lat": link_lat,
+        "num_tx" : num_tx_remap,
+        "num_rx" : num_rx_remap
     }
 
 def analyze_trace_request_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:

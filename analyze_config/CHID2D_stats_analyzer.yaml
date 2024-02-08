@@ -75,9 +75,12 @@ summary:
     - {data: "l2_size", head: "L2 Size"}
     - {data: "l3_size", head: "L3 Size"}
     - {data: "workset", head: "Working Set"}
-    - {data: "sfEntries", head: "Snoop-Filter Entries"}
+    - {data: "TransmitRetryD2D", head: "Transmit or Absorb retry"}
     - {data: "outstanding-req", head: "CPU Max-Outstanding"}
     - {data: "accessRegion", head: "Region"}
     - {data: "totalReadBandWidth", head: "Total Bandwidth(GBps)"}
     - {data: "normReadBandwidth", head: "Average Bandwidth(GBps)"}
     - {data: "readLatency", head: "Read Latency(Cycles)"}
+    - {data: "num_tx", head: "Num Tx Remap"}
+    - {data: "num_rx", head: "Num Rx Remap"}
+    - {data: "link_lat", head: "D2D Link Latency(Cycle)"}
