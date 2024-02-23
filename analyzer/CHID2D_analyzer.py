@@ -1,5 +1,7 @@
 import os
 import logging
+import statistics
+
 # check if the key exists in dictionary, if not, then return False;
 # If the key exists:
 # 1. The element is an empty list or dict, then return False
@@ -17,7 +19,7 @@ def check_key(parsDict: dict, key: str):
 # 1. The element is an empty list or dict, then return None
 # 2. The index is not None, then return the element's indexed value
 # 3. The index is None, then return the element
-def check_and_fetch_key(parsDict: dict, key: str, index: int or str = None):
+def check_and_fetch_key(parsDict: dict, key: str, index = None): # type: ignore
     if check_key(parsDict, key):
         if index is not None:
             return parsDict[key][index]
@@ -80,7 +82,8 @@ def analyze_read_latency(runtimeConfig: dict, extractedPars: dict, targetDir: st
     numDies = check_and_fetch_key(runtimeConfig, "num-dies", 0)
     maxOutstand = check_and_fetch_key(runtimeConfig, "outstanding-req", 0)
 
-    if (maxOutstand is None) or (maxOutstand != 1):
+    if (maxOutstand is None):
+    # if (maxOutstand is None) or (maxOutstand != 1):
         return {}
 
     numGenCpus = numCpus
@@ -215,4 +218,88 @@ def analyze_trace_request_latency(runtimeConfig: dict, extractedPars: dict, targ
         
         analyzeFile.close()
     
+    return {}
+
+
+def analyze_trace_txn_breakdown_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> str:
+    brokenDownLatency = check_and_fetch_key(extractedPars, "BrokenDownLatency")
+    reqInfoDict = {}
+    reqBreakdown = {}
+    for latencyInfo in brokenDownLatency:
+        txnId = latencyInfo[0]
+        addr = latencyInfo[1]
+        cycle = int(latencyInfo[2])
+        agent = latencyInfo[3]
+        opCode = latencyInfo[4]
+        if txnId not in reqInfoDict:
+            reqInfoDict[txnId] = []
+        
+        # construct requestInfo and append it to the list for further analysis
+        reqInfoDict[txnId].append({
+            "addr": addr,
+            "intAddr": int(addr, 16),
+            "intTxnId": int(txnId, 16),
+            "cycle": cycle,
+            "agent": agent,
+            "opCode": opCode
+        })
+        
+    breakdownLatencyFile = open(os.path.join(targetDir, "breakdownLatency.csv"), "w")
+    
+    titleMade = False
+    for txnId in reqInfoDict:
+        reqInfo = reqInfoDict[txnId]
+        # sort traces of one transaction by dequeue cycle
+        reqInfoDict[txnId] = sorted(reqInfoDict[txnId], key = lambda trace: trace["cycle"])
+        # ignore eviction event
+        if int(txnId, 16) == 0:
+            continue
+        
+        reqBreakdown[txnId] = []
+        
+        agentTrace = []
+        cycleTrace = []
+        opCodeTrace = []
+        
+        for trace in reqInfoDict[txnId]:
+            agent: str = trace["agent"]
+            cycle: int = trace["cycle"]
+            opCode: str = trace["opCode"]
+            # intermediate network transmission, ignore
+            if agent.find("Die") != -1:
+                continue
+            # same agent or Ack message, ignore
+            if (opCode == "CompAck" or (len(agentTrace) >= 1 and agentTrace[-1].find(agent) != -1)) and (opCode != "MEMORY_READ"):
+                continue
+            
+            # not the initial one
+            if len(cycleTrace) > 0:
+                # Retry Detected
+                if len(agentTrace) >= 2 and agentTrace[-2].find(agent) != -1 and opCodeTrace[-2] == opCode:
+                    agentTrace.pop()
+                    opCodeTrace.pop()
+                    cycleTrace.pop()
+                    agentTrace[-1] += "(Retry)"
+                    continue
+            
+            agentTrace.append(agent)
+            cycleTrace.append(cycle)
+            opCodeTrace.append(opCode)
+        
+        # generate table title
+        if not titleMade:
+            breakdownLatencyFile.write("TxnId, Addr, ")
+            for i in range(len(agentTrace) - 1):
+                breakdownLatencyFile.write("Agent[opCode], Issue Time, Duration, Receive Time, ")
+            breakdownLatencyFile.write("\n")
+        titleMade = True
+        
+        # fill table with data
+        breakdownLatencyFile.write(f"{txnId}, {reqInfo[0]['addr']}, ")
+        for i in range(len(agentTrace) - 1):
+            breakdownLatencyFile.write(f"{agentTrace[i]}[{opCodeTrace[i]}], {cycleTrace[i]}, {cycleTrace[i+1] - cycleTrace[i]}, {cycleTrace[i+1]}, ")
+        breakdownLatencyFile.write(f"{agentTrace[-1]}[{opCodeTrace[-1]}]\n")
+        
+    breakdownLatencyFile.close()
+
     return {}

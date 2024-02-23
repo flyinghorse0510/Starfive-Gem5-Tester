@@ -280,6 +280,9 @@ if __name__ == "__main__":
     analyzeConfigDict = util.recursive_load_yaml(args.analyze_file)
     # search for all target files in the folder and its subfolders
     targetDirList = util.get_all_target_dir(args.target_root, "stats.txt")
+    # hint users about the working directory
+    print(f"<<<<<< Use {analyzeConfigDict['WORKERS']} Processes >>>>>>")
+    print(f"Repo Root Directory: {rootRepo}; Target Root Directory: {args.target_root}")
 
     # start the worker manager to run various tasks
     subP = Process(target=worker_manager, args=(args, analyzeConfigDict, targetDirList))

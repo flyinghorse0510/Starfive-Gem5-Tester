@@ -1,0 +1,11 @@
+include: ["analyze_config/CHID2D_stats_analyzer.yaml"]
+WORKERS: 32
+callback:
+  "analyze_trace_txn_breakdown_latency": {file: "analyzer/CHID2D_analyzer", func: ["analyze_trace_txn_breakdown_latency"]}
+
+target:
+  "LatencyBreakdownDump/dumpAll.csv":
+    BrokenDownLatency:
+      pattern: '(0x[a-zA-Z\d]*),(0x[a-zA-Z\d]*),([\d\.]*),([a-zA-Z0-9\.]*),(.*)'
+      location: [1, 2, 3, 4, 5]
+      type: [str, str, float, str, str]

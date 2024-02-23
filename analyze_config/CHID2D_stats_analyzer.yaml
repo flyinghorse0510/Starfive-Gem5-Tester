@@ -81,6 +81,7 @@ summary:
     - {data: "TransmitRetryD2D", head: "Transmit or Absorb retry"}
     - {data: "outstanding-req", head: "CPU Max-Outstanding"}
     - {data: "accessRegion", head: "Region"}
+    - {data: "maxloads", head: "Load Factor"}
     - {data: "totalReadBandWidth", head: "Total Bandwidth(GBps)"}
     - {data: "normReadBandwidth", head: "Average Bandwidth(GBps)"}
     - {data: "readLatency", head: "Read Latency(Cycles)"}
