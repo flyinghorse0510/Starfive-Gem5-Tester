@@ -66,7 +66,7 @@ def analyze_read_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir: 
     return {
         "totalReadBandWidth": totalBandwidth,
         "normReadBandwidth": normBandwidth,
-        "numGenCpus": numGenCpus,
+        "numGenCpus": numGenCpus
     }
 
 
@@ -123,11 +123,29 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
     link_lat = check_and_fetch_key(runtimeConfig, "d2d_traversal_latency", 0)
     num_tx_remap = check_and_fetch_key(runtimeConfig, "num_txremap_entries", 0)
     num_rx_remap = check_and_fetch_key(runtimeConfig, "num_rxremap_entries", 0)
+    ddr_side_code = check_and_fetch_key(runtimeConfig,"DDR-side-num", 0)
+    ha_tbe = check_and_fetch_key(runtimeConfig, "num-HA-TBE", 0)
     sfEntries = "Ideal" if allowInfiniteSFEntries else "Realistic"
     TransmitRetryD2D = "Transmit" if transmit_retryack else "Absorb"
     numNormDirs = int(numDirs / numDies)
     numNormL3caches = int(numL3Caches / numDies)
     workset = str(int(sizeWs / 1024)) + "KiB"
+    num_DDR = check_and_fetch_key(runtimeConfig, "DDR-loc-num", 0)
+    num_DDR_side = "Unknown"
+    if (num_DDR == 2) :
+        num_DDR_side = "13"
+    elif (num_DDR == 4) :
+        if (ddr_side_code <= 1) :
+            num_DDR_side = '_'.join(['13','14'])
+        elif (ddr_side_code >= 2) :
+            num_DDR_side = '_'.join(['13','2'])
+    elif (num_DDR == 8) :
+        if (ddr_side_code <= 1) :
+            num_DDR_side = '_'.join(['12','13','14','15'])
+        elif (ddr_side_code == 2) :
+            num_DDR_side = '_'.join(['13','14','1','2'])
+        elif (ddr_side_code <= 4) :
+            num_DDR_side = '_'.join(['13','11','2','4'])
 
     firstNoGen = int(noGen.split(",")[0])
     if firstNoGen % 2 == 1:
@@ -141,6 +159,9 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
         "workset": workset,
         "TransmitRetryD2D": TransmitRetryD2D,
         "accessRegion": accessRegion,
+        "HA_TBE": ha_tbe,
+        "num_DDR": num_DDR,
+        "num_DDR_side": num_DDR_side,
         "hostSeconds": hostSeconds,
         "hostMemory": hostMemory,
         "link_lat": link_lat,

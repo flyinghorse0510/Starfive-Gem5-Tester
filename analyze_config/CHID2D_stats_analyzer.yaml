@@ -74,6 +74,9 @@ summary:
     - {data: "l1i_size", head: "L1i Size"}
     - {data: "l2_size", head: "L2 Size"}
     - {data: "l3_size", head: "L3 Size"}
+    - {data: "HA_TBE", head: "HA TBEs"}
+    - {data: "num_DDR", head: "Num DDRs"}
+    - {data: "num_DDR_side", head: "DDR locations"}
     - {data: "workset", head: "Working Set"}
     - {data: "TransmitRetryD2D", head: "Transmit or Absorb retry"}
     - {data: "outstanding-req", head: "CPU Max-Outstanding"}

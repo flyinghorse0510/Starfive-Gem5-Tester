@@ -101,7 +101,7 @@ xor-addr-bits-hnf: [4]
 sequencer-outstanding-requests: [32]      # SEQ_TBE
 num-HNF-TBE: [32]
 num-SNF-TBE: [32]
-ha-TBE: [32]
+num-HA-TBE: [32]
 ha-SF-TBE: [32]
 
 ## 8. Other Configuration
