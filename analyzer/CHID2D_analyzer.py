@@ -290,7 +290,9 @@ def analyze_trace_txn_breakdown_latency(runtimeConfig: dict, extractedPars: dict
         if not titleMade:
             breakdownLatencyFile.write("TxnId, Addr, ")
             for i in range(len(agentTrace) - 1):
-                breakdownLatencyFile.write("Agent[opCode], Issue Time, Duration, Receive Time, ")
+                breakdownLatencyFile.write(f"Agent{i}, Issue{i}, Duration{i}, Receive{i}, ")
+                if (i == len(agentTrace) - 2):
+                    breakdownLatencyFile.write(f"Agent{i+1}")
             breakdownLatencyFile.write("\n")
         titleMade = True
         
