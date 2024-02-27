@@ -128,6 +128,7 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
     num_rx_remap = check_and_fetch_key(runtimeConfig, "num_rxremap_entries", 0)
     ddr_side_code = check_and_fetch_key(runtimeConfig,"DDR-side-num", 0)
     ha_tbe = check_and_fetch_key(runtimeConfig, "num-HA-TBE", 0)
+    rnf_tbe = check_and_fetch_key(runtimeConfig,"num-RNF-TBE", 0)
     sfEntries = "Ideal" if allowInfiniteSFEntries else "Realistic"
     TransmitRetryD2D = "Transmit" if transmit_retryack else "Absorb"
     numNormDirs = int(numDirs / numDies)
@@ -163,6 +164,7 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
         "TransmitRetryD2D": TransmitRetryD2D,
         "accessRegion": accessRegion,
         "HA_TBE": ha_tbe,
+        "L2_TBE": rnf_tbe,
         "num_DDR": num_DDR,
         "num_DDR_side": num_DDR_side,
         "hostSeconds": hostSeconds,

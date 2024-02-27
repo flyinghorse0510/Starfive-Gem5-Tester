@@ -75,6 +75,7 @@ summary:
     - {data: "l2_size", head: "L2 Size"}
     - {data: "l3_size", head: "L3 Size"}
     - {data: "HA_TBE", head: "HA TBEs"}
+    - {data: "L2_TBE", head: "L2 TBEs"}
     - {data: "num_DDR", head: "Num DDRs"}
     - {data: "num_DDR_side", head: "DDR locations"}
     - {data: "workset", head: "Working Set"}
