@@ -78,6 +78,18 @@ def match_process(config: dict):
 
     return {"targetDir": targetDir, "extractedPars": extractedPars}
 
+def preprocess_process(config: dict):
+    # get parameters
+    targetDir = config["targetDir"]
+    taskIdx = config["taskIdx"]
+    runtimeConfig = config["runtimeConfig"]
+    extractedPars = config["extractedPars"]
+    preprocessFunc = config["preprocessFunc"]
+    
+    # execute the preprocess function
+    extractedPars = preprocessFunc(runtimeConfig, extractedPars, targetDir)
+    
+    return {"targetDir": targetDir, "extractedPars": extractedPars}
 
 def analyze_process(config: dict):
     # get parameters
@@ -135,6 +147,68 @@ def dump_summary(config: dict):
 def worker_manager(args, analyzeConfigDict: dict, targetDirList: list):
     # create process(worker) pool
     processPool = Pool(analyzeConfigDict["WORKERS"])
+    
+    # construct the list of extracted(matched) results
+    extractedDict = dict(
+        [
+            (
+                targetDir,
+                {
+                    "runtimeConfig": util.recursive_load_yaml(
+                        os.path.join(targetDir, "cmd_config.yaml")
+                    ),
+                    "extractedPars": {},
+                },
+            )
+            for targetDir in targetDirList
+        ]
+    )
+    
+    # create and construct preprocess task list
+    preprocessTaskList = []
+    preprocessResultObj = None
+    if util.check_key(analyzeConfigDict, "preprocess"):
+        taskIdx = 1
+        for preprocess in analyzeConfigDict["preprocess"]:
+            preprocessFuncList = analyzeConfigDict["preprocess"][preprocess]["func"]
+            preprocessPath = analyzeConfigDict["preprocess"][preprocess]["file"]
+            preprocessDir = os.path.dirname(preprocessPath)
+            preprocessFile = os.path.basename(preprocessPath)
+            # generate code for execute
+            _code = ""
+            # import required preprocess file
+            _code += f"from {preprocessDir} import {preprocessFile}\n"
+            exec(_code)
+
+            for targetDir in targetDirList:
+                for preprocessFunc in preprocessFuncList:
+                    preprocessFunc = eval(f"{preprocessFile}.{preprocessFunc}")
+                    # append preprocess task
+                    preprocessTaskList.append(
+                        {
+                            "targetDir": targetDir,
+                            "runtimeConfig": extractedDict[targetDir]["runtimeConfig"],
+                            "extractedPars": extractedDict[targetDir]["extractedPars"],
+                            "preprocessFunc": preprocessFunc,
+                            "taskIdx": taskIdx,
+                        }
+                    )
+                    taskIdx += 1
+        # run preprocess tasks(async) and hint users
+        print(f"Running preprocess task...({taskIdx-1} sub-tasks in total)")
+        preprocessResultObj = processPool.map_async(preprocess_process, preprocessTaskList)
+    else:
+        logging.warning("No preprocess task to be done")
+
+    # get preprocess results and update the dict
+    if preprocessResultObj is not None:
+        preprocessResultList = preprocessResultObj.get()
+        for preprocessResult in preprocessResultList:
+            extractedDict[preprocessResult["targetDir"]]["extractedPars"] = deep_update(
+                extractedDict[preprocessResult["targetDir"]]["extractedPars"],
+                preprocessResult["extractedPars"],
+            )
+    
     # create and construct match task list
     matchTaskList = []
     matchResultObj = None
@@ -160,23 +234,7 @@ def worker_manager(args, analyzeConfigDict: dict, targetDirList: list):
         matchResultObj = processPool.map_async(match_process, matchTaskList)
     else:
         # no match task to perform
-        logging.warn("No target to extract(search pattern)")
-
-    # construct the list of extracted(matched) results
-    extractedDict = dict(
-        [
-            (
-                targetDir,
-                {
-                    "runtimeConfig": util.recursive_load_yaml(
-                        os.path.join(targetDir, "cmd_config.yaml")
-                    ),
-                    "extractedPars": {},
-                },
-            )
-            for targetDir in targetDirList
-        ]
-    )
+        logging.warning("No target to extract(search pattern)")
 
     # get matched results and update the dict
     if matchResultObj is not None:
@@ -221,7 +279,7 @@ def worker_manager(args, analyzeConfigDict: dict, targetDirList: list):
         print(f"Running analyze task...({taskIdx-1} sub-tasks in total)")
         analyzeResultObj = processPool.map_async(analyze_process, analyzeTaskList)
     else:
-        logging.warn("No callback for analysis")
+        logging.warning("No callback for analysis")
 
     # get analyzed results and update the dict
     if analyzeResultObj is not None:

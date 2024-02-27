@@ -3,6 +3,7 @@ WORKERS: 32
 callback:
   "analyze_trace_request_latency": {file: "analyzer/CHID2D_analyzer", func: ["analyze_trace_request_latency"]}
   "analyze_trace_HA_dataIn": {file: "analyzer/CHID2D_Component_analyzer", func: ["analyze_trace_HA_dataIn"]}
+  "analyze_network": {file: "analyzer/CHID2D_Netparse", func: ["get_avg_traffic"]}
 
 target:
   "debug.trace":
