@@ -97,6 +97,8 @@ link-width-bits:
 - 256
 maxloads:
 - 1
+- 2
+- 4
 mem-size:
 - 16GB
 mem-test-type:
