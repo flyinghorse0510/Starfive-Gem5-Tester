@@ -7,7 +7,7 @@
 include: []
 
 ## 1. Build & Runtime Configuration
-ISA: "RISCV"
+ISA: "ARM"
 CCPROT: "CHID2D"
 BUILDTYPE: "gem5.opt"
 BUILDENV:
@@ -24,7 +24,11 @@ topology: ["CustomMesh"]                  # topology
 relative_path_list:                       # add repo root path as prefix to the parameters listed
   - gem5_config
   - chi-config
-gem5_config: ["configs/example/d2d_ruby_mem_test.py"]                 # gem5 python config file(relative to repo root path)
+  - kernel
+  - dtb-filename
+  - disk-image
+  - script
+gem5_config: ["configs/example/fs_starlink_d2d.py"]                   # gem5 python config file(relative to repo root path)
 chi-config: ["configs/example/noc_config/Starlink2.0_4x4Mesh_D2D.py"] # chi python config file(relative to repo root path)
 
 ## 3. Network Configuration
@@ -68,19 +72,25 @@ d2d_traversal_latency: [1]
 #### bw_test_sf ==> seq2memtest
 #### memcpy_test ==> memcpytest
 # /（Default: None)
+# Full-System Emulation
+machine-type: ["VExpress_GEM5_V1"]
+kernel: ["starfive_gem5_tester/img/kernel_bootloader/binaries/vmlinux.arm64"]   # Linux kernel path(relative to repo root path)
+dtb-filename: ["system/arm/dt/armv8_gem5_v1_2cpu.dtb"]
+disk-image: ["starfive_gem5_tester/img/disk_img/ubuntu-18.04-arm64-docker.img"]
+bootloader: ["starfive_gem5_tester/img/kernel_bootloader/binaries/boot_emm.arm64"]
 
 ## 5. Cache Configuration
 #### L1
-l1d_size: ["4KiB"]
+l1d_size: ["64KiB"]
 l1d_assoc: [8]
-l1i_size: ["4KiB"]
+l1i_size: ["64KiB"]
 l1i_assoc: [8]
 #### L2
-l2_size: ["8KiB"]
+l2_size: ["1MiB"]
 l2_assoc: [8]
 #### L3(LLC)
-num-l3caches: [2]                         # total l3 caches
-l3_size: ["1MiB"]
+num-l3caches: [16]                         # total l3 caches
+l3_size: ["2MiB"]
 l3_assoc: [16]
 num_trans_per_cycle_llc: [4]
 #### SnoopFilter Directory
@@ -122,6 +132,7 @@ python-config-exclusive-pars:
   - relative_path_list
   - analyzer
   - include
+  - fs_mode
 
 ## 9. Debug Flags
 debug_flags: []                           # /（Default: None)
@@ -133,3 +144,4 @@ extra_flags:
   - simple-physical-channels
   - ruby
   - disable-gclk-set
+  - param 'system.realview.gic.gem5_extensions = True'    # full-system simulation required

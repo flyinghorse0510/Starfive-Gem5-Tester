@@ -1,0 +1,42 @@
+# Starfive Tester Base Config
+# *********************
+# [] represents an array, each element in which will be iterated and tested separately
+# i.e. num-cpus: [2,4], num-dirs: [2,4] means that there will be 4 tests in total
+# *********************
+
+# include other configuration files, included contents will be overwritten by this file if both fileds occur
+include: ["test_config/D2D_microbenchmark/read_bandwidth_latency_opt.yaml"]
+
+BUILDTYPE: "gem5.opt"
+WORKERS: 32
+debug_flags: []
+
+num-cpus: [32,16,8,4,2]
+# total l3 caches
+num-l3caches: [32,16,8,4,2]
+# eliminate the cache cold miss impact as possible
+maxloads: [100, 200]
+# 16 KiB, 8KiB (per DIe)
+size-ws: [16384, 8192]
+# all intra-die
+no-gen: ["1"]
+allow-infinite-SF-entries: [true]
+# unlimited max-outstanding for cpu side
+outstanding-req: [10000]
+
+### Cache Size
+#### L1
+l1d_size: ["128B"]
+l1d_assoc: [1]
+l1i_size: ["128B"]
+l1i_assoc: [1]
+#### L2
+l2_size: ["128B"]
+l2_assoc: [1]
+#### L3(LLC)
+l3_size: ["1MiB"]
+l3_assoc: [8]
+
+
+simple-int-link-bw-factor: [40]
+simple-ext-link-bw-factor: [20]

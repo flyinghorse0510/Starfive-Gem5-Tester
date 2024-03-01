@@ -53,7 +53,7 @@ extra_flags:
 gem5_config:
 - configs/example/d2d_ruby_mem_test.py
 ha-SF-TBE:
-- 32
+- 128
 include: []
 inj-interval:
 - 1
@@ -110,11 +110,13 @@ network:
 no-gen:
 - '1'
 num-HA-TBE:
-- 32
+- 128
 num-HNF-TBE:
-- 32
+- 128
 num-SNF-TBE:
-- 32
+- 128
+num-RNF-TBE:
+- 128
 num-cpus:
 - 2
 num-dies:

@@ -80,6 +80,18 @@ def worker_process(config):
             gem5Cmd += f"{configDict['d2d-link-config-list'][i]}={configDict[configDict['d2d-link-config-list'][i]][0]}"
             if i != numD2DLinkConfig - 1:
                 gem5Cmd += ","
+    
+    # construct fs-mode flags
+    fsMode = util.check_and_fetch_key(configDict, "fs_mode")
+    if fsMode is not None:
+        # full-system emulation mode
+        if fsMode == "checkpoint":
+            # create checkpoint
+            gem5Cmd += f" --checkpoint-dir={output_dir}"
+        else:
+            raise NotImplementedError
+    
+    
     # construct extra flags
     if configDict["extra_flags"] is not None:
         for extraFlag in configDict["extra_flags"]:
@@ -93,7 +105,8 @@ def worker_process(config):
 
     # execute test and get the result
     startTime = time.time()
-    stdOut, stdErr, retCode = util.exec_shell_cmd(gem5Cmd)
+    # stdOut, stdErr, retCode = util.exec_shell_cmd(gem5Cmd)
+    stdOut, stdErr, retCode = util.exec_shell_cmd(gem5Cmd, False, False, True, True)
     endTime = time.time()
     duration = int(endTime - startTime)
 
