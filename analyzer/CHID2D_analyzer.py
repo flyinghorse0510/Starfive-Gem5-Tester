@@ -1,6 +1,7 @@
 import os
 import logging
 import statistics
+import pandas as pd
 
 # check if the key exists in dictionary, if not, then return False;
 # If the key exists:
@@ -28,6 +29,18 @@ def check_and_fetch_key(parsDict: dict, key: str, index = None): # type: ignore
     return None
 
 
+def getNumGenCpus(runtimeConfig: dict) -> int :
+    noGen   = check_and_fetch_key(runtimeConfig, "no-gen", 0)
+    numCpus = check_and_fetch_key(runtimeConfig, "num-cpus", 0)
+    numDies = check_and_fetch_key(runtimeConfig, "num-dies", 0)
+    numGenCpus = numCpus
+    if noGen is not None:
+        numCpuPerDie = int(numCpus / numDies)
+        noGenDieList = list(map(lambda noGen: int(noGen), noGen.split(",")))
+        numNoGenDie = len(noGenDieList)
+        numGenCpus -= numNoGenDie * numCpuPerDie
+    return numGenCpus
+
 def analyze_read_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
     totalNumReads = check_and_fetch_key(extractedPars, "totalNumReads", 0)
     totalNumWrites = check_and_fetch_key(extractedPars, "totalNumWrites", 0)
@@ -42,12 +55,7 @@ def analyze_read_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir: 
     if (maxOutstand is None) or (maxOutstand == 1):
         return {}
 
-    numGenCpus = numCpus
-    if noGen is not None:
-        numCpuPerDie = int(numCpus / numDies)
-        noGenDieList = list(map(lambda noGen: int(noGen), noGen.split(",")))
-        numNoGenDie = len(noGenDieList)
-        numGenCpus -= numNoGenDie * numCpuPerDie
+    numGenCpus = getNumGenCpus(runtimeConfig)
 
     totalBandwidth = None
     normBandwidth = None
@@ -61,7 +69,7 @@ def analyze_read_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir: 
         totalBandwidth = (
             float(totalNumReads)
             * 64
-            / (float(simTicks) / float(simFreq) * 1024 * 1024 * 1024)
+            / (float(simTicks) / float(simFreq) * 1000 * 1000 * 1000)
         )
         normBandwidth = totalBandwidth / numGenCpus
 
@@ -71,10 +79,46 @@ def analyze_read_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir: 
         "numGenCpus": numGenCpus
     }
 
-
+def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict :
+    numDirs    = check_and_fetch_key(runtimeConfig, "num-dirs", 0)
+    numGenCpus = getNumGenCpus(runtimeConfig)
+    snfTbeUtil = check_and_fetch_key(extractedPars,"snfTbeUtil",0)
+    snfTbeUtilAvg = -1000000.0
+    haTbeUtilAvg  = -1000000.0
+    rnfTbeUtilAvg = -1000000.0
+    l1dTbeUtilAvg = -1000000.0
+    if snfTbeUtil is not None :
+        snfTbeUtil = float(snfTbeUtil)
+        snfTbeUtilAvg = snfTbeUtil/numDirs
+    haTbeUtil = check_and_fetch_key(extractedPars,"haTbeUtil",0)
+    if haTbeUtil is not None :
+        haTbeUtil = float(haTbeUtil)
+        haTbeUtilAvg = haTbeUtil/numDirs
+    rnfTbeUtil = check_and_fetch_key(extractedPars,"rnfTbeUtil",0)
+    if rnfTbeUtil is not None :
+        rnfTbeUtil = float(rnfTbeUtil)
+        rnfTbeUtilAvg = rnfTbeUtil/numGenCpus
+    l1dTbeUtil = check_and_fetch_key(extractedPars,"l1dTbeUtil",0)
+    if l1dTbeUtil is not None :
+        l1dTbeUtil = float(l1dTbeUtil)
+        l1dTbeUtilAvg = l1dTbeUtil/numGenCpus
+    l2RetryAcks = check_and_fetch_key(extractedPars,"l2RetryAcks",0)
+    l2RetryAcksAvg = -1000000.0
+    if l2RetryAcks is not None :
+        l2RetryAcks = float(l2RetryAcks)
+        l2RetryAcksAvg = l2RetryAcks/numGenCpus
+    return {
+        "L1D_Occupancy": l1dTbeUtilAvg,
+        "L2RetryAcks": l2RetryAcksAvg,
+        "RNF_Occupancy": rnfTbeUtilAvg,
+        "HA_Occupancy": haTbeUtilAvg,
+        "SNF_Occupancy": snfTbeUtilAvg
+    }
+    
 def analyze_read_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
     totalNumReads = check_and_fetch_key(extractedPars, "totalNumReads", 0)
     totalNumWrites = check_and_fetch_key(extractedPars, "totalNumWrites", 0)
+    totalLatency = check_and_fetch_key(extractedPars, "totalLatency", 0)
     simTicks = check_and_fetch_key(extractedPars, "simTicks", 0)
     ticksPerCycle = check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
     noGen = check_and_fetch_key(runtimeConfig, "no-gen", 0)
@@ -86,12 +130,7 @@ def analyze_read_latency(runtimeConfig: dict, extractedPars: dict, targetDir: st
     # if (maxOutstand is None) or (maxOutstand != 1):
         return {}
 
-    numGenCpus = numCpus
-    if noGen is not None:
-        numCpuPerDie = int(numCpus / numDies)
-        noGenDieList = list(map(lambda noGen: int(noGen), noGen.split(",")))
-        numNoGenDie = len(noGenDieList)
-        numGenCpus -= numNoGenDie * numCpuPerDie
+    numGenCpus = getNumGenCpus(runtimeConfig)
 
     normLatency = None
 
@@ -101,9 +140,10 @@ def analyze_read_latency(runtimeConfig: dict, extractedPars: dict, targetDir: st
         and ((totalNumWrites is not None) and (totalNumWrites == 0))
         and ((simTicks is not None) and (simTicks > 0))
         and ((ticksPerCycle is not None) and (ticksPerCycle > 0))
+        and ((totalLatency is not None) and (totalLatency > 0))
     ):
         normLatency = int(
-            float(simTicks) / float(totalNumReads * ticksPerCycle / numGenCpus)
+            float(totalLatency) / float(totalNumReads * ticksPerCycle / numGenCpus)
         )
 
     return {"readLatency": normLatency, "numGenCpus": numGenCpus}
@@ -118,18 +158,19 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
     hostMemory = check_and_fetch_key(extractedPars, "hostMemory", 0)
     if hostMemory is not None:
         hostMemory = "%.2lf" %(float(hostMemory) / 1024 / 1024) + "GiB"
-    allowInfiniteSFEntries = check_and_fetch_key(
-        runtimeConfig, "allow-infinite-SF-entries", 0
+    allowInfiniteSFEntriesHA = check_and_fetch_key(
+        runtimeConfig, "allow-ha-infinite-SF-entries", 0
+    )
+    allowInfiniteSFEntriesHNF = check_and_fetch_key(
+        runtimeConfig, "allow-hnf-infinite-SF-entries", 0
     )
     noGen = check_and_fetch_key(runtimeConfig, "no-gen", 0)
     transmit_retryack = check_and_fetch_key(runtimeConfig, "transmit-retryack", 0)
-    link_lat = check_and_fetch_key(runtimeConfig, "d2d_traversal_latency", 0)
-    num_tx_remap = check_and_fetch_key(runtimeConfig, "num_txremap_entries", 0)
-    num_rx_remap = check_and_fetch_key(runtimeConfig, "num_rxremap_entries", 0)
     ddr_side_code = check_and_fetch_key(runtimeConfig,"DDR-side-num", 0)
-    ha_tbe = check_and_fetch_key(runtimeConfig, "num-HA-TBE", 0)
-    rnf_tbe = check_and_fetch_key(runtimeConfig,"num-RNF-TBE", 0)
-    sfEntries = "Ideal" if allowInfiniteSFEntries else "Realistic"
+    accPatternCode = check_and_fetch_key(runtimeConfig,"addr-intrlvd-or-tiled",0)
+    accPattern = 'Interleaved' if accPatternCode else 'Tiled'
+    sfHAEntries = "Ideal" if allowInfiniteSFEntriesHA else "Realistic"
+    sfHNFEntries = "Ideal" if allowInfiniteSFEntriesHNF else "Realistic"
     TransmitRetryD2D = "Transmit" if transmit_retryack else "Absorb"
     numNormDirs = int(numDirs / numDies)
     numNormL3caches = int(numL3Caches / numDies)
@@ -158,20 +199,18 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
         accessRegion = "Cross-Die"
 
     return {
+        "AccPattern": accPattern,
         "numNormDirs": numNormDirs,
         "numNormL3caches": numNormL3caches,
         "workset": workset,
         "TransmitRetryD2D": TransmitRetryD2D,
         "accessRegion": accessRegion,
-        "HA_TBE": ha_tbe,
-        "L2_TBE": rnf_tbe,
         "num_DDR": num_DDR,
         "num_DDR_side": num_DDR_side,
         "hostSeconds": hostSeconds,
         "hostMemory": hostMemory,
-        "link_lat": link_lat,
-        "num_tx" : num_tx_remap,
-        "num_rx" : num_rx_remap
+        "HASnoopFilter": sfHAEntries,
+        "HNFSnoopFilter": sfHNFEntries
     }
 
 def analyze_trace_request_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
@@ -190,36 +229,44 @@ def analyze_trace_request_latency(runtimeConfig: dict, extractedPars: dict, targ
         reqTick: int = int(reqMsg[0] / ticksPerCycle)
         reqCpu: int = reqMsg[1]
         reqAddr: str = reqMsg[2]
-        reqEvent: str = reqMsg[3]
+        reqIter: int = reqMsg[3]
+        reqEvent: str = reqMsg[4]
         
         if reqCpu not in reqMsgList:
             reqMsgList[reqCpu] = {}
             reqAddrList[reqCpu] = []
         
-        if reqAddr not in reqMsgList[reqCpu]:
-            reqMsgList[reqCpu][reqAddr] = {"cpu": reqCpu}
+        if (reqAddr,reqIter) not in reqMsgList[reqCpu]:
+            reqMsgList[reqCpu][(reqAddr,reqIter)] = {"cpu": reqCpu}
             
-        reqMsgList[reqCpu][reqAddr][reqEvent] = reqTick
+        reqMsgList[reqCpu][(reqAddr,reqIter)][reqEvent] = reqTick
     
     for reqCpu in reqMsgList:
-        for reqAddr in reqMsgList[reqCpu]:
-            reqMsgList[reqCpu][reqAddr]["Duration"] = reqMsgList[reqCpu][reqAddr]["Complete"] - reqMsgList[reqCpu][reqAddr]["Start"]
-            reqAddrList[reqCpu].append(reqAddr)
+        for (reqAddr,reqIter) in reqMsgList[reqCpu]:
+            reqMsgList[reqCpu][(reqAddr,reqIter)]["Duration"] = reqMsgList[reqCpu][(reqAddr,reqIter)]["Complete"] - reqMsgList[reqCpu][(reqAddr,reqIter)]["Start"]
+            reqAddrList[reqCpu].append((reqAddr,reqIter))
     
+    latRecords = []
     for reqCpu in reqMsgList:
-        reqAddrList[reqCpu] = sorted(reqAddrList[reqCpu])
-        analyzeFile = open(os.path.join(targetDir, f"request_latency_cpu{reqCpu}.csv"), "w")
-        analyzeFile.write("Address, Latency(Cycles), Begin(Cycle), End(Cycle)\n")
-        
         for i in range(len(reqAddrList[reqCpu])):
-            reqAddr = reqAddrList[reqCpu][i]
-            reqLatency = reqMsgList[reqCpu][reqAddr]["Duration"]
-            reqBegin = reqMsgList[reqCpu][reqAddr]["Start"]
-            reqEnd = reqMsgList[reqCpu][reqAddr]["Complete"]
-            analyzeFile.write(f"{reqAddr}, {reqLatency}, {reqBegin}, {reqEnd}\n")
-        
-        analyzeFile.close()
-    
+            reqAddr,reqIter = reqAddrList[reqCpu][i]
+            reqLatency = reqMsgList[reqCpu][(reqAddr,reqIter)]["Duration"]
+            reqBegin = reqMsgList[reqCpu][(reqAddr,reqIter)]["Start"]
+            reqEnd = reqMsgList[reqCpu][(reqAddr,reqIter)]["Complete"]
+            # analyzeFile.write(f"{reqAddr}, {reqIter}, {reqLatency}, {reqBegin}, {reqEnd}\n")
+            latRecords.append({
+                'CPU': reqCpu,
+                'Addr': reqAddr,
+                'Iter': reqIter,
+                'Start': reqBegin,
+                'End': reqEnd,
+                'Latency': reqLatency
+            })
+
+    dfX = pd.DataFrame.from_records(latRecords)
+    dfX.sort_values(by='Start',ascending=True,inplace=True)
+    analyzeFile = os.path.join(targetDir, f"request_latency_cpu{reqCpu}.csv")
+    dfX.to_csv(analyzeFile, index=False)
     return {}
 
 
