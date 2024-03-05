@@ -87,6 +87,12 @@ target:
       location: [3]
       type: [float]
       reduce: "+="
+    
+    memCtrlReadBW:
+      pattern: 'system.mem_ctrls(\d+).dram.avgRdBW( +)([\.\d]+)( +)# Average DRAM read bandwidth in MiBytes/s \(\(Byte/Second\)\)'
+      location: [3]
+      type: [float]
+      reduce: "+="
 
 summary:
   "d2d_stats_analyzed":
@@ -103,6 +109,7 @@ summary:
     - {data: "l3_size", head: "L3 Size"}
     - {data: "HASnoopFilter", head: "HASnoopFilter"}
     - {data: "HNFSnoopFilter", head: "HNFSnoopFilter"}
+    - {data: "haSnoopFilterCoverageFactor", head: "HA SnoopFilter coverage factor"}
     - {data: "num-RNF-TBE", head: "L2 TBEs"}
     - {data: "num-HA-TBE", head: "HA TBEs"}
     - {data: "num-SNF-TBE", head: "SNF TBEs"}

@@ -41,6 +41,13 @@ def getNumGenCpus(runtimeConfig: dict) -> int :
         numGenCpus -= numNoGenDie * numCpuPerDie
     return numGenCpus
 
+def getNumCpus(runtimeConfig: dict) -> int :
+    numCpus = check_and_fetch_key(runtimeConfig, "num-cpus", 0)
+    if (numCpus is not None)  :
+        return int(numCpus)
+    else :
+        return -1
+    
 def analyze_read_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
     totalNumReads = check_and_fetch_key(extractedPars, "totalNumReads", 0)
     totalNumWrites = check_and_fetch_key(extractedPars, "totalNumWrites", 0)
@@ -114,7 +121,10 @@ def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) 
         "HA_Occupancy": haTbeUtilAvg,
         "SNF_Occupancy": snfTbeUtilAvg
     }
-    
+
+def getHASnoopFilterMissRate(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
+    pass
+
 def analyze_read_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
     totalNumReads = check_and_fetch_key(extractedPars, "totalNumReads", 0)
     totalNumWrites = check_and_fetch_key(extractedPars, "totalNumWrites", 0)
@@ -147,6 +157,27 @@ def analyze_read_latency(runtimeConfig: dict, extractedPars: dict, targetDir: st
         )
 
     return {"readLatency": normLatency, "numGenCpus": numGenCpus}
+
+def getSFCoverageFactor(runtimeConfig: dict) -> dict:
+    cacheLineSize  = 64
+    numL3Caches    = check_and_fetch_key(runtimeConfig, "num-l3caches", 0)
+    l3_size        = check_and_fetch_key(runtimeConfig, "l3_size", 0)
+    l2_size        = check_and_fetch_key(runtimeConfig, "l2_size", 0)
+    numL2Caches    = getNumCpus(runtimeConfig)
+    numHASFEntries = check_and_fetch_key(runtimeConfig,"num-ha-snoopfilter-entries",0)
+    haSnoopFilterCoverageFactor = -2
+    if ((l3_size is not None) and
+       (numL3Caches is not None) and 
+       (l2_size is not None) and 
+       (numL2Caches is not None) and 
+       (numHASFEntries is not None)) : 
+        total_l3_size = (numL3Caches*float(l3_size.strip('KiB'))*1024)/cacheLineSize
+        total_l2_size = (numL2Caches*float(l2_size.strip('KiB'))*1024)/cacheLineSize
+        # print(f'numL3Caches:{numL3Caches},numL2Caches:{numL2Caches}')
+        haSnoopFilterCoverageFactor = float(numHASFEntries)/(total_l3_size)
+    else :
+        logging.warn(f'Unable to compute SnoopFilter coverage factor')
+    return haSnoopFilterCoverageFactor
 
 
 def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
@@ -210,7 +241,8 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
         "hostSeconds": hostSeconds,
         "hostMemory": hostMemory,
         "HASnoopFilter": sfHAEntries,
-        "HNFSnoopFilter": sfHNFEntries
+        "HNFSnoopFilter": sfHNFEntries,
+        "haSnoopFilterCoverageFactor": getSFCoverageFactor(runtimeConfig)
     }
 
 def analyze_trace_request_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
