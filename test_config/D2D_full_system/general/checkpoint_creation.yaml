@@ -4,7 +4,7 @@
 # i.e. num-cpus: [2,4], num-dirs: [2,4] means that there will be 4 tests in total
 # *********************
 # include other configuration files
-BUILDTYPE: "gem5.debug"
+BUILDTYPE: "gem5.opt"
 fs_mode: "checkpoint"
 include: ["test_config/D2D_full_system/CHID2D_full_system_base.yaml"]
 cpu-type: ["O3CPU"]

@@ -40,6 +40,7 @@ link-width-bits: [256]
 vcs-per-vnet: [2]
 link-latency: [1]
 router-latency: [0]
+chi-buffer-max-deq-rate: [1]
 d2d-link-config-list:                      # list of various D2D link tunable parameters
   - lat_req_bridge_2_nw
   - lat_rsp_bridge_2_nw
@@ -62,8 +63,8 @@ lat_req_nw_2_bridge: [1]
 lat_rsp_nw_2_bridge: [1]
 lat_snp_nw_2_bridge: [1]
 lat_dat_nw_2_bridge: [1]
-num_txremap_entries: [8]
-num_rxremap_entries: [8]
+num_txremap_entries: [128]
+num_rxremap_entries: [128]
 lat_crd_transfer: [1]
 d2d_traversal_latency: [1]
 
@@ -94,9 +95,12 @@ l3_size: ["2MiB"]
 l3_assoc: [16]
 num_trans_per_cycle_llc: [4]
 #### SnoopFilter Directory
-num-snoopfilter-entries: [128]
-num-snoopfilter-assoc: [4]
-allow-infinite-SF-entries: [true]
+num-ha-snoopfilter-assoc: [16]
+num-ha-snoopfilter-entries: [8192]
+num-hnf-snoopfilter-assoc: [4]
+num-hnf-snoopfilter-entries: [1024]
+allow-ha-infinite-SF-entries: [true]
+allow-hnf-infinite-SF-entries: [true]
 
 
 ## 6. Memory Configuration
@@ -110,9 +114,12 @@ xor-addr-bits-hnf: [4]
 ## 7. TBE Configuration
 sequencer-outstanding-requests: [32]      # SEQ_TBE
 num-HNF-TBE: [32]
+num-RNF-TBE: [64]
 num-SNF-TBE: [32]
 num-HA-TBE: [32]
 ha-SF-TBE: [32]
+snf_allow_retry: [false]
+transmit-retryack: [true]
 
 ## 8. Other Configuration
 enable-DMT: [false]

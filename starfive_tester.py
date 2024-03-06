@@ -247,7 +247,7 @@ if __name__ == "__main__":
             buildEnvs += f" {configDict['BUILDENV'][i]}"
         # build gem5
         _, _, retCode = util.exec_shell_cmd(
-            f"pushd {args.root_repo} && scons build/{configDict['ISA']}_{configDict['CCPROT']}/{configDict['BUILDTYPE']} --default={configDict['ISA']} PROTOCOL={configDict['CCPROT']} {buildEnvs} -j {configDict['WORKERS']} && popd",
+            f"pushd {args.root_repo} && scons {buildEnvs} build/{configDict['ISA']}_{configDict['CCPROT']}/{configDict['BUILDTYPE']} --default={configDict['ISA']} PROTOCOL={configDict['CCPROT']} {buildEnvs} -j {configDict['WORKERS']} && popd",
             directStdout=True,
             directStderr=True,
         )
