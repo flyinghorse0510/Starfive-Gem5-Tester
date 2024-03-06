@@ -1,7 +1,7 @@
 include: []
 WORKERS: 32
 callback:
-  "analyze_read_bandwidth_latency": {file: "analyzer/CHID2D_analyzer", func: ["analyze_read_bandwidth", "analyze_read_latency", "analyze_mshr_util", "dump_parameters"]}
+  "analyze_read_bandwidth_latency": {file: "analyzer/CHID2D_analyzer", func: ["analyze_read_bandwidth", "analyze_read_latency", "analyze_mshr_util", "analyze_copyback_traffic", "dump_parameters"]}
 
 target:
   "stats.txt":
@@ -88,9 +88,15 @@ target:
       type: [float]
       reduce: "+="
     
-    memCtrlReadBW:
-      pattern: 'system.mem_ctrls(\d+).dram.avgRdBW( +)([\.\d]+)( +)# Average DRAM read bandwidth in MiBytes/s \(\(Byte/Second\)\)'
-      location: [3]
+    incomingReqHATraffic :
+      pattern: 'system\.ruby\.hAs(\d+)\.cntrl\.inTransLatHist\.(\S+)\.total( +)(\d+)'
+      location: [4]
+      type: [float]
+      reduce: "+="
+    
+    incomingCopyBackHATraffic :
+      pattern: 'system\.ruby\.hAs(\d+)\.cntrl\.inTransLatHist\.(WriteEvictFull|WriteBackFull)\.total( +)(\d+)'
+      location: [4]
       type: [float]
       reduce: "+="
 
@@ -109,7 +115,7 @@ summary:
     - {data: "l3_size", head: "L3 Size"}
     - {data: "HASnoopFilter", head: "HASnoopFilter"}
     - {data: "HNFSnoopFilter", head: "HNFSnoopFilter"}
-    - {data: "haSnoopFilterCoverageFactor", head: "HA SnoopFilter coverage factor"}
+    - {data: "ha-snoopfilter-cov-factor", head: "HA SnoopFilter coverage factor"}
     - {data: "num-RNF-TBE", head: "L2 TBEs"}
     - {data: "num-HA-TBE", head: "HA TBEs"}
     - {data: "num-SNF-TBE", head: "SNF TBEs"}
@@ -127,6 +133,7 @@ summary:
     - {data: "outstanding-req", head: "CPU Max-Outstanding"}
     - {data: "accessRegion", head: "Region"}
     - {data: "maxloads", head: "Load Factor"}
+    - {data: "percentCopyBackTraffic", head: "Percent of copyback (e.g. WriteEvicts) traffic to HA"}
     - {data: "totalReadBandWidth", head: "Total Bandwidth(GBps)"}
     - {data: "normReadBandwidth", head: "Average Bandwidth(GBps)"}
     - {data: "readLatency", head: "Read Latency(Cycles)"}
