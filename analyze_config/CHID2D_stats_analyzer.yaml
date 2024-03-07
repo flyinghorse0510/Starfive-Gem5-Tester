@@ -115,6 +115,7 @@ summary:
     - {data: "l3_size", head: "L3 Size"}
     - {data: "HASnoopFilter", head: "HASnoopFilter"}
     - {data: "HNFSnoopFilter", head: "HNFSnoopFilter"}
+    - {data: "genEvictOnReplHnf", head: "HNF to HA Eviction Type"}
     - {data: "ha-snoopfilter-cov-factor", head: "HA SnoopFilter coverage factor"}
     - {data: "num-RNF-TBE", head: "L2 TBEs"}
     - {data: "num-HA-TBE", head: "HA TBEs"}

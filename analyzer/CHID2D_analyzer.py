@@ -96,7 +96,7 @@ def analyze_copyback_traffic(runtimeConfig: dict, extractedPars: dict, targetDir
     if incomingCopyBackHATraffic is not None :
         incomingCopyBackHATraffic = int(incomingCopyBackHATraffic)
     else :
-        incomingCopyBackHATraffic = -10000
+        incomingCopyBackHATraffic = 0
     return {
         "incomingReqHATraffic": incomingReqHATraffic,
         "incomingCopyBackHATraffic": incomingCopyBackHATraffic,
@@ -190,6 +190,8 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
     allowInfiniteSFEntriesHNF = check_and_fetch_key(
         runtimeConfig, "allow-hnf-infinite-SF-entries", 0
     )
+    genEvictOnReplHnfCode = check_and_fetch_key(runtimeConfig,'gen_evict_on_repl_hnf',0)
+    genEvictOnReplHnf = 'Evict' if genEvictOnReplHnfCode else 'WriteEvictFull'
     noGen = check_and_fetch_key(runtimeConfig, "no-gen", 0)
     transmit_retryack = check_and_fetch_key(runtimeConfig, "transmit-retryack", 0)
     ddr_side_code = check_and_fetch_key(runtimeConfig,"DDR-side-num", 0)
@@ -236,7 +238,8 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
         "hostSeconds": hostSeconds,
         "hostMemory": hostMemory,
         "HASnoopFilter": sfHAEntries,
-        "HNFSnoopFilter": sfHNFEntries
+        "HNFSnoopFilter": sfHNFEntries,
+        "genEvictOnReplHnf": genEvictOnReplHnf
     }
 
 def analyze_trace_request_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
