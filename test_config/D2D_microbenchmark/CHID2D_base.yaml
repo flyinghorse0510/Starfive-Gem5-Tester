@@ -122,6 +122,8 @@ python-config-exclusive-pars:
   - relative_path_list
   - analyzer
   - include
+  - debug-start
+  - debug-end
 
 ## 9. Debug Flags
 debug_flags: []                           # /（Default: None)

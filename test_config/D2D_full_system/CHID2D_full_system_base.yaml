@@ -140,6 +140,8 @@ python-config-exclusive-pars:
   - analyzer
   - include
   - fs_mode
+  - debug-start
+  - debug-end
 
 ## 9. Debug Flags
 debug_flags: []                           # /（Default: None)

@@ -38,11 +38,7 @@ def worker_process(config):
     # construct the gem5 running command
     gem5Cmd = f"{args.root_repo}/build/{configDict['ISA']}_{configDict['CCPROT']}/{configDict['BUILDTYPE']}"
     # add debug flags
-    if (
-        ("debug_flags" in configDict)
-        and (configDict["debug_flags"] is not None)
-        and len(configDict["debug_flags"]) > 0
-    ):
+    if util.check_and_fetch_key(configDict, "debug_flags", 0) is not None:
         # construct debug flags
         gem5Cmd += " --debug-flags="
         numDebugFlags = len(configDict["debug_flags"])
@@ -52,6 +48,11 @@ def worker_process(config):
                 gem5Cmd += ","
     # specify debug trace file
     gem5Cmd += " --debug-file=debug.trace"
+    # specify debug-start & debug-end if necessary
+    if util.check_and_fetch_key(configDict, "debug-start", 0) is not None:
+        gem5Cmd += f" --debug-start={configDict['debug-start'][0]}"
+    if util.check_and_fetch_key(configDict, "debug-end", 0) is not None:
+        gem5Cmd += f" --debug-end={configDict['debug-end'][0]}"
     # specify gem5 output directory
     gem5Cmd += f" -d {output_dir}"
     # specify gem5 python configuration file
