@@ -30,7 +30,7 @@ def check_and_fetch_key(parsDict: dict, key: str, index = None): # type: ignore
 
 
 def getNumGenCpus(runtimeConfig: dict) -> int :
-    noGen   = check_and_fetch_key(runtimeConfig, "no-gen", 0)
+    noGen   = check_and_fetch_key(runtimeConfig, "no-gen-die", 0)
     numCpus = check_and_fetch_key(runtimeConfig, "num-cpus", 0)
     numDies = check_and_fetch_key(runtimeConfig, "num-dies", 0)
     numGenCpus = numCpus
@@ -54,9 +54,6 @@ def analyze_read_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir: 
     simTicks = check_and_fetch_key(extractedPars, "simTicks", 0)
     simFreq = check_and_fetch_key(extractedPars, "simFreq", 0)
     ticksPerCycle = check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
-    noGen = check_and_fetch_key(runtimeConfig, "no-gen", 0)
-    numCpus = check_and_fetch_key(runtimeConfig, "num-cpus", 0)
-    numDies = check_and_fetch_key(runtimeConfig, "num-dies", 0)
     maxOutstand = check_and_fetch_key(runtimeConfig, "outstanding-req", 0)
 
     if (maxOutstand is None) or (maxOutstand == 1):
@@ -148,9 +145,6 @@ def analyze_read_latency(runtimeConfig: dict, extractedPars: dict, targetDir: st
     totalLatency = check_and_fetch_key(extractedPars, "totalLatency", 0)
     simTicks = check_and_fetch_key(extractedPars, "simTicks", 0)
     ticksPerCycle = check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
-    noGen = check_and_fetch_key(runtimeConfig, "no-gen", 0)
-    numCpus = check_and_fetch_key(runtimeConfig, "num-cpus", 0)
-    numDies = check_and_fetch_key(runtimeConfig, "num-dies", 0)
     maxOutstand = check_and_fetch_key(runtimeConfig, "outstanding-req", 0)
 
     if (maxOutstand is None):
@@ -192,7 +186,7 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
     )
     genEvictOnReplHnfCode = check_and_fetch_key(runtimeConfig,'gen_evict_on_repl_hnf',0)
     genEvictOnReplHnf = 'Evict' if genEvictOnReplHnfCode else 'WriteEvictFull'
-    noGen = check_and_fetch_key(runtimeConfig, "no-gen", 0)
+    noGen = check_and_fetch_key(runtimeConfig, "no-gen-die", 0)
     transmit_retryack = check_and_fetch_key(runtimeConfig, "transmit-retryack", 0)
     ddr_side_code = check_and_fetch_key(runtimeConfig,"DDR-side-num", 0)
     accPatternCode = check_and_fetch_key(runtimeConfig,"addr-intrlvd-or-tiled",0)

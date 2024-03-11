@@ -51,7 +51,7 @@ extra_flags:
 - ruby
 - disable-gclk-set
 gem5_config:
-- configs/example/d2d_ruby_mem_test.py
+- configs/example/starlink2_memtest_d2d.py
 ha-SF-TBE:
 - 128
 include: []
