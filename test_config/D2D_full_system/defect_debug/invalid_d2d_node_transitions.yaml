@@ -1,0 +1,21 @@
+# Starfive Tester Base Config
+# *********************
+# [] represents an array, each element in which will be iterated and tested separately
+# i.e. num-cpus: [2,4], num-dirs: [2,4] means that there will be 4 tests in total
+# *********************
+# include other configuration files
+BUILDTYPE: "gem5.opt"
+fs_mode: "checkpoint"
+include: ["test_config/D2D_full_system/CHID2D_full_system_base.yaml"]
+# cpu-type: ["O3CPU"]
+# cpu-type: ["NonCachingSimpleCPU"]
+cpu-type: ["TimingSimpleCPU"]
+script: ["configs/boot/hack_back_ckpt.rcS"]
+prog-interval: ["25Hz"]
+# d2d node invalid transitions
+debug-start: ["2063364669500"]
+debug-end: ["2063366669500"]
+debug_flags: ["RubyCHIDebugStr5", "RubyGenerated"]
+# debug_flags: ["ExecAll", "Ruby", "MsgBufTrace"]
+# debug_flags: ["ExecAll", "MsgBufTrace"]
+# debug_flags: ["MsgBufTrace"]
