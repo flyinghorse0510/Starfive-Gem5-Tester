@@ -1,0 +1,183 @@
+BUILDENV:
+- NUMBER_BITS_PER_SET=128
+BUILDTYPE: gem5.opt
+CCPROT: CHID2D
+DDR-loc-num:
+- 2
+DDR-side-num:
+- 1
+ISA: RISCV
+WORKERS: 32
+addr-intrlvd-or-tiled:
+- true
+addr-mapping:
+- RoRaBaBg1CoBg0Co53Dp
+allow-ha-infinite-SF-entries:
+- true
+allow-hnf-infinite-SF-entries:
+- true
+analyzer: []
+base_addr_1:
+- 0
+block-stride-bits:
+- 0
+chi-buffer-max-deq-rate:
+- 1
+chi-config:
+- configs/example/noc_config/Starlink2.0_4x4Mesh_D2D.py
+chi-data-width:
+- 64
+d2d-link-config-list:
+- lat_req_bridge_2_nw
+- lat_rsp_bridge_2_nw
+- lat_snp_bridge_2_nw
+- lat_dat_bridge_2_nw
+- lat_req_nw_2_bridge
+- lat_rsp_nw_2_bridge
+- lat_snp_nw_2_bridge
+- lat_dat_nw_2_bridge
+- num_txremap_entries
+- num_rxremap_entries
+- lat_crd_transfer
+- d2d_traversal_latency
+d2d_traversal_latency:
+- 20
+debug_flags: []
+enable-DCT:
+- false
+enable-DMT:
+- false
+extra_flags:
+- simple-physical-channels
+- ruby
+- disable-gclk-set
+gem5_config:
+- configs/example/starlink2_memtest_d2d.py
+gen_evict_on_repl_hnf:
+- false
+ha-SF-TBE:
+- 32
+ha-snoopfilter-cov-factor:
+- 1.0
+include: []
+inj-interval:
+- 1
+l1d_assoc:
+- 2
+l1d_size:
+- 256B
+l1i_assoc:
+- 2
+l1i_size:
+- 256B
+l2_assoc:
+- 4
+l2_size:
+- 512B
+l3_assoc:
+- 8
+l3_size:
+- 1KiB
+lat_crd_transfer:
+- 1
+lat_dat_bridge_2_nw:
+- 1
+lat_dat_nw_2_bridge:
+- 1
+lat_req_bridge_2_nw:
+- 1
+lat_req_nw_2_bridge:
+- 1
+lat_rsp_bridge_2_nw:
+- 1
+lat_rsp_nw_2_bridge:
+- 1
+lat_snp_bridge_2_nw:
+- 1
+lat_snp_nw_2_bridge:
+- 1
+link-latency:
+- 1
+link-width-bits:
+- 256
+maxloads:
+- 10
+mem-size:
+- 16GB
+mem-test-type:
+- falsesharing_test
+mem-type:
+- DDR4_3200_8x8
+network:
+- simple
+num-HA-TBE:
+- 32
+num-HNF-TBE:
+- 32
+num-RNF-TBE:
+- 64
+num-SNF-TBE:
+- 32
+num-cpus:
+- 4
+- 8
+- 12
+- 16
+- 32
+num-dies:
+- 2
+num-dirs:
+- 2
+num-ha-snoopfilter-assoc:
+- 16
+num-l3caches:
+- 32
+num_rxremap_entries:
+- 128
+num_trans_per_cycle_llc:
+- 4
+num_txremap_entries:
+- 128
+outstanding-req:
+- 1000
+python-config-exclusive-pars:
+- python-config-exclusive-pars
+- d2d-link-config-list
+- ISA
+- CCPROT
+- BUILDTYPE
+- BUILDENV
+- WORKERS
+- debug_flags
+- extra_flags
+- gem5_config
+- relative_path_list
+- analyzer
+- include
+randomize-acc:
+- false
+ratio-read-write:
+- 1-1
+relative_path_list:
+- gem5_config
+- chi-config
+router-latency:
+- 0
+sequencer-outstanding-requests:
+- 32
+simple-ext-link-bw-factor:
+- 20
+simple-int-link-bw-factor:
+- 64
+size-ws:
+- 65536
+snf_allow_retry:
+- false
+topology:
+- CustomMesh
+transmit-retryack:
+- true
+vcs-per-vnet:
+- 2
+xor-addr-bits-hnf:
+- 4

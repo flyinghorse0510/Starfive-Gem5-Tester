@@ -5,6 +5,7 @@ from copy import deepcopy
 from datetime import datetime
 
 import util
+import starfive_fs_utility
 
 _tab = "\t"
 
@@ -91,7 +92,13 @@ def worker_process(config):
             gem5Cmd += f" --checkpoint-dir={output_dir}"
         else:
             raise NotImplementedError
-    
+        # automatically pass the dtb file path if necessary
+        if util.check_and_fetch_key(configDict, "dtb-filename") is None:
+            dtbFileName = f"{configDict['machine-type'][0]}_{configDict['num-cpus'][0]}cpu_{configDict['num-dies'][0]}die.dtb"
+            dtbFilePath = f"{os.path.join(util.get_script_root(), 'dtb', dtbFileName)}"
+            print(f"Using automatically generated dtb file ==> {dtbFilePath}")
+            gem5Cmd += f" --dtb-filename={dtbFilePath}"
+            
     
     # construct extra flags
     if configDict["extra_flags"] is not None:
@@ -241,7 +248,11 @@ if __name__ == "__main__":
         util.create_dir(args.output_dir)
         # dump configs to folder
         util.dump_config(os.path.join(args.output_dir, "cmd_config.yaml"), configDict)
-
+        # automatically generate required dtb files
+        # compile the dts
+        starfive_fs_utility.compile_dts()
+        # decompile for debugging
+        starfive_fs_utility.decompile_dtb()
         # construct extra build env variables
         buildEnvs = ""
         for i in range(len(configDict["BUILDENV"])):

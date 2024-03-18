@@ -36,8 +36,24 @@ def exec_shell_cmd(
 
 # create directory if necessary
 def create_dir(path: str) -> bool:
-    exec_shell_cmd("mkdir -p %s" % (path), directStdout=False, directStderr=False)
+    _, _, exitCode = exec_shell_cmd("mkdir -p %s" % (path), directStdout=False, directStderr=False)
+    return True if exitCode == 0 else False
 
+# delete directory
+def del_dir(path: str, extName: str = None) -> bool:
+    if extName is not None:
+        _, _, exitCode = exec_shell_cmd(f"rm -rf {path}/*{extName}", directStdout=False, directStderr=False)
+    else:
+        _, _, exitCode = exec_shell_cmd(f"rm -rf {path}", directStdout=False, directStderr=False)
+    return True if exitCode == 0 else False
+
+
+# clean (optionally specified) contents within directory
+def clean_dir(path: str, extName: str = None):
+    # delete file(directory)
+    del_dir(path, extName)
+    # create directory if necessary
+    create_dir(path)
 
 # get repo root directory
 def get_repo_root() -> str:

@@ -75,8 +75,9 @@ d2d_traversal_latency: [1]
 # /（Default: None)
 # Full-System Emulation
 machine-type: ["VExpress_GEM5_V1"]
-kernel: ["starfive_gem5_tester/img/kernel_bootloader/binaries/vmlinux.arm64"]   # Linux kernel path(relative to repo root path)
-dtb-filename: ["system/arm/dt/armv8_gem5_v1_2cpu.dtb"]
+kernel: ["starfive_gem5_tester/img/kernel_bootloader/binaries/vmlinux.arm64.v4.15.starfive_numa"]   # Linux kernel path(relative to repo root path)
+# will be automatically generated according to the configuration by default, no need to specify
+dtb-filename: []
 disk-image: ["starfive_gem5_tester/img/disk_img/ubuntu-18.04-arm64-docker.img"]
 bootloader: ["starfive_gem5_tester/img/kernel_bootloader/binaries/boot_emm.arm64"]
 
