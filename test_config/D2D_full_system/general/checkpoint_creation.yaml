@@ -10,12 +10,14 @@ include: ["test_config/D2D_full_system/CHID2D_full_system_base.yaml"]
 # cpu-type: ["O3CPU"]
 cpu-type: ["NonCachingSimpleCPU"]
 # cpu-type: ["TimingSimpleCPU"]
-# script: ["configs/boot/hack_back_ckpt.rcS"]
+script: ["configs/boot/hack_back_ckpt.rcS"]
 # prog-interval: ["25Hz"]
-# take-checkpoints: ["100000000,100000000"]
+take-checkpoints: ["60000000000,60000000000"]
+max-checkpoints: [10]
 # debug_flags: ["RubyCacheTrace"]
 extra_flags:
   - simple-physical-channels
   - disable-gclk-set
   - param 'system.realview.gic.gem5_extensions = True'    # full-system simulation required
+  # - ruby
   # - wait-gdb

@@ -170,7 +170,7 @@ simple-ext-link-bw-factor:
 simple-int-link-bw-factor:
 - 64
 size-ws:
-- 65536
+- 32768
 snf_allow_retry:
 - false
 topology:

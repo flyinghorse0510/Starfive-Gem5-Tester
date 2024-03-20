@@ -50,9 +50,9 @@ def worker_process(config):
     # specify debug trace file
     gem5Cmd += " --debug-file=debug.trace"
     # specify debug-start & debug-end if necessary
-    if util.check_and_fetch_key(configDict, "debug-start", 0) is not None:
+    if util.check_key(configDict, "debug-start"):
         gem5Cmd += f" --debug-start={configDict['debug-start'][0]}"
-    if util.check_and_fetch_key(configDict, "debug-end", 0) is not None:
+    if util.check_key(configDict, "debug-end"):
         gem5Cmd += f" --debug-end={configDict['debug-end'][0]}"
     # specify gem5 output directory
     gem5Cmd += f" -d {output_dir}"
@@ -88,8 +88,21 @@ def worker_process(config):
     if fsMode is not None:
         # full-system emulation mode
         if fsMode == "checkpoint":
+            # for checkpoint mode, specifying `checkpoint-dir` is optional
             # create checkpoint
-            gem5Cmd += f" --checkpoint-dir={output_dir}"
+            if not util.check_key(configDict, "checkpoint-dir"):
+                # use default directory to create and store the checkpoint
+                gem5Cmd += f" --checkpoint-dir={output_dir}"
+            else:
+                # clean and create the checkpoint directory if necessary
+                util.clean_dir(configDict["checkpoint-dir"][0])
+                gem5Cmd += f" --checkpoint-dir={configDict['checkpoint-dir'][0]}"
+        elif fsMode == "restore":
+            # for restore mode, `checkpoint-dir` must be provided
+            if not util.check_key(configDict, "checkpoint-dir"):
+                raise ValueError("checkpoint-dir must be provided under FS restore mode")
+            else:
+                gem5Cmd += f" --checkpoint-dir={configDict['checkpoint-dir'][0]}"
         else:
             raise NotImplementedError
         # automatically pass the dtb file path if necessary
@@ -225,6 +238,12 @@ if __name__ == "__main__":
         help=f"whether to run tests in background(detached mode), default True",
     )
     parser.add_argument(
+        "--checkpoint-dir",
+        type=str,
+        default="",
+        help=f"specify checkpoint directory for FS mode"
+    )
+    parser.add_argument(
         "action",
         type=str,
         default=None,
@@ -237,6 +256,9 @@ if __name__ == "__main__":
     args.output_dir = os.path.join(rootRepo, args.output_dir)
     # load configs
     configDict = util.recursive_load_yaml(args.config_file)
+    # deal with special arguments
+    if args.checkpoint_dir is not None and len(args.checkpoint_dir) > 0:
+        configDict["checkpoint-dir"] = [os.path.join(rootRepo, args.checkpoint_dir)]
     # hint users about the working directory
     print(f"<<<<<< Use {configDict['WORKERS']} Processes >>>>>>")
     print(f"Repo Root Directory: {rootRepo}; Output Directory: {args.output_dir}")

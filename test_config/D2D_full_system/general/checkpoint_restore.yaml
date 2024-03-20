@@ -1,0 +1,24 @@
+# Starfive Tester Base Config
+# *********************
+# [](or -) represents an array, each element in which will be iterated and tested separately
+# i.e. num-cpus: [2,4], num-dirs: [2,4] means that there will be 4 tests in total
+# *********************
+# include other configuration files
+BUILDTYPE: "gem5.opt"
+fs_mode: "restore"
+include: ["test_config/D2D_full_system/CHID2D_full_system_base.yaml"]
+# cpu-type: ["O3CPU"]
+# cpu-type: ["NonCachingSimpleCPU"]
+cpu-type: ["TimingSimpleCPU"]
+restore-with-cpu: ["TimingSimpleCPU"]
+# script: ["configs/boot/hack_back_ckpt.rcS"]
+# prog-interval: ["25Hz"]
+# take-checkpoints: ["100000000,100000000"]
+checkpoint-restore: [1,2,3,4,5,6,7,8,9]
+# debug_flags: ["RubyCacheTrace"]
+extra_flags:
+  - simple-physical-channels
+  - disable-gclk-set
+  - param 'system.realview.gic.gem5_extensions = True'    # full-system simulation required
+  - ruby
+  # - wait-gdb
