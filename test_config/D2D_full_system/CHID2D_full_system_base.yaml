@@ -28,6 +28,7 @@ relative_path_list:                       # add repo root path as prefix to the 
   - dtb-filename
   - disk-image
   - script
+  - checkpoint-dir
 gem5_config: ["configs/example/fs_starlink_d2d.py"]                   # gem5 python config file(relative to repo root path)
 chi-config: ["configs/example/noc_config/Starlink2.0_4x4Mesh_D2D.py"] # chi python config file(relative to repo root path)
 

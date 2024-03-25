@@ -20,7 +20,7 @@ def worker_process(config):
     dimParameterSpace = len(parameterSpaceList)
     for i in range(dimParameterSpace):
         parameter = parameterSpaceList[i]
-        parameterDirName += f"{parameter.replace('-','_')}.{str(configDict[parameter][0]).replace(',','.')}"
+        parameterDirName += f"{parameter.replace('-','_')}.{os.path.basename(str(configDict[parameter][0])).replace(',','.')}"
         if i != dimParameterSpace - 1:
             parameterDirName += "_"
     output_dir = os.path.join(output_dir, parameterDirName)
@@ -103,6 +103,9 @@ def worker_process(config):
                 raise ValueError("checkpoint-dir must be provided under FS restore mode")
             else:
                 gem5Cmd += f" --checkpoint-dir={configDict['checkpoint-dir'][0]}"
+        elif fsMode == "dry":
+            # for dry-run mode, `checkpoint-dir` is not needed
+            pass
         else:
             raise NotImplementedError
         # automatically pass the dtb file path if necessary
@@ -181,7 +184,7 @@ def worker_manager(args, configDict):
             print(f"Running [{i+1}/{numConfig}] {args.output_dir}/", end="")
             for parameter in parameterSpaceList:
                 print(
-                    f"{parameter}_{str(configList[i][1][parameter][0]).replace(',','.')}/",
+                    f"{parameter}_{os.path.basename(str(configList[i][1][parameter][0])).replace(',','.')}/",
                     end="",
                 )
             print("")

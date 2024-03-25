@@ -1,0 +1,38 @@
+# Starfive Tester Base Config
+# *********************
+# [] represents an array, each element in which will be iterated and tested separately
+# i.e. num-cpus: [2,4], num-dirs: [2,4] means that there will be 4 tests in total
+# *********************
+
+# include other configuration files, included contents will be overwritten by this file if both fileds occur
+include: ["test_config/D2D_microbenchmark/CHID2D_base.yaml"]
+
+analyzer: []
+BUILDTYPE: "gem5.opt"
+
+num-dies: [2]                             # total dies
+num-dirs: [2]                             # total memory controllers
+num-cpus: [2] 
+#
+# Set the default cache size and associativity to be very small to encourage
+# races between requests and writebacks.
+#
+
+# Tester specific settings
+mem-test-type: ["ruby_random_test"]
+maxloads: [100]
+wakeup_freq: [10]
+
+
+### Cache Size
+l1d_size: ["256B"]
+l1d_assoc: [2]
+l1i_size: ["256B"]
+l1i_assoc: [2]
+l2_size: ["512B"]
+l2_assoc: [2]
+l3_size: ["1kB"]
+l3_assoc: [2]
+num-l3caches: [2]
+
+# debug_flags: ["MsgBufTrace", "SeqMemLatTest"]
