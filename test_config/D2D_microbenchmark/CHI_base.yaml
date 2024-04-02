@@ -1,0 +1,111 @@
+# Starfive Tester Base Config
+# *********************
+# [] represents an array, each element in which will be iterated and tested separately
+# i.e. num-cpus: [2,4], num-dirs: [2,4] means that there will be 4 tests in total
+# *********************
+# include other configuration files
+include: []
+
+## 1. Build & Runtime Configuration
+ISA: "RISCV"
+CCPROT: "CHI"
+BUILDTYPE: "gem5.opt"
+BUILDENV:
+  - NUMBER_BITS_PER_SET=128               # increase the maximum node Ruby can handle
+WORKERS: 32                               # number of concurrent workers for building and testing
+
+## 2. Topology Configuration
+num-dies: [1]                             # total dies. Not used here always set to 1
+num-dirs: [2]                             # total memory controllers
+num-cpus: [2]                             # total cpus
+mem-size: ["16GB"]                        # memory size
+topology: ["CustomMesh"]                  # topology
+relative_path_list:                       # add repo root path as prefix to the parameters listed
+  - gem5_config
+  - chi-config
+gem5_config: ["configs/example/starlink2_memtest.py"]                 # gem5 python config file(relative to repo root path)
+chi-config: ["configs/example/noc_config/Starlink2.0_4x4Mesh.py"] # chi python config file(relative to repo root path)
+
+## 3. Network Configuration
+network: ["simple"]
+simple-int-link-bw-factor: [40]
+simple-ext-link-bw-factor: [20]
+chi-data-width: [64]
+link-width-bits: [256]
+vcs-per-vnet: [2]
+link-latency: [1]
+router-latency: [0]
+chi-buffer-max-deq-rate: [1]
+
+## 4. Benchmark-Specific Configuration
+### choose types of memory tests:
+#### bw_test_sf ==> seq2memtest
+#### memcpy_test ==> memcpytest
+# /（Default: None)
+
+## 5. Cache Configuration
+#### L1
+l1d_size: ["4KiB"]
+l1d_assoc: [8]
+l1i_size: ["4KiB"]
+l1i_assoc: [8]
+#### L2
+l2_size: ["8KiB"]
+l2_assoc: [8]
+#### L3(LLC)
+num-l3caches: [2]                         # total l3 caches
+l3_size: ["1MiB"]
+l3_assoc: [16]
+num_trans_per_cycle_llc: [4]
+#### SnoopFilter Directory
+num-hnf-snoopfilter-assoc: [4]
+num-hnf-snoopfilter-entries: [1024]
+allow-hnf-infinite-SF-entries: [true]
+
+
+## 6. Memory Configuration
+mem-type: ["DDR4_3200_8x8"]               # memory type
+addr-mapping: ["RoRaBaBg1CoBg0Co53Dp"]    # address mapping
+DDR-loc-num: [2]
+DDR-side-num: [1]
+xor-addr-bits-hnf: [4]
+
+## 7. TBE Configuration
+sequencer-outstanding-requests: [32]      # SEQ_TBE
+num-HNF-TBE: [32]
+num-RNF-TBE: [64]
+num-SNF-TBE: [32]
+snf_allow_retry: [false]
+
+## 8. Other Configuration
+enable-DMT: [false]
+enable-DCT: [false]
+inj-interval: [1]
+python-config-exclusive-pars:
+  - python-config-exclusive-pars
+  - d2d-link-config-list
+  - ISA
+  - CCPROT
+  - BUILDTYPE
+  - BUILDENV
+  - WORKERS
+  - debug_flags
+  - extra_flags
+  - gem5_config
+  - relative_path_list
+  - analyzer
+  - include
+  - fs_mode
+  - debug-start
+  - debug-end
+
+## 9. Debug Flags
+debug_flags: []                           # /（Default: None)
+
+## 10. Extra Flags
+#### will be directly appended to the gem5 python configs with '--' prefix
+#### e.g. ruby ==> --ruby
+extra_flags:
+  - simple-physical-channels
+  - ruby
+  - disable-gclk-set
