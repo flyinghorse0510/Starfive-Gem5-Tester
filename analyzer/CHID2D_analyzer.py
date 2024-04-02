@@ -214,11 +214,13 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
         elif (ddr_side_code <= 4) :
             num_DDR_side = '_'.join(['13','11','2','4'])
 
-    firstNoGen = int(noGen.split(",")[0])
-    if firstNoGen % 2 == 1:
-        accessRegion = "Intra-Die"
-    else:
-        accessRegion = "Cross-Die"
+    accessRegion = ""
+    if noGen :
+        firstNoGen = int(noGen.split(",")[0])
+        if firstNoGen % 2 == 1:
+            accessRegion = "Intra-Die"
+        else:
+            accessRegion = "Cross-Die"
 
     return {
         "AccPattern": accPattern,
