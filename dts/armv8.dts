@@ -77,14 +77,34 @@
 	/* Memory Device for Dual Dies */
 	memory@80000000 {
 		device_type = "memory";
-		reg = <0 0x80000000 0x2 0x00000000>;
+		reg = <0 0x80000000 0 0x80000000>;
 		numa-node-id = <0>;
 	};
-	memory@280000000 {
+
+	memory@100000000 {
 		device_type = "memory";
-		reg = <0x2 0x80000000 0x2 0x00000000>;
+		reg = <0x1 0x00000000 0x1 0x00000000>;
 		numa-node-id = <1>;
 	};
+
+	memory@200000000 {
+		device_type = "memory";
+		reg = <0x2 0x00000000 0x1 0x00000000>;
+		numa-node-id = <0>;
+	};
+
+	memory@300000000 {
+		device_type = "memory";
+		reg = <0x3 0x00000000 0x1 0x00000000>;
+		numa-node-id = <1>;
+	};
+
+	memory@400000000 {
+		device_type = "memory";
+		reg = <0x4 0x00000000 0 0x80000000>;
+		numa-node-id = <0>;
+	};
+
 	/* Distance Map for Dual Dies */
 	distance-map {
 		compatible = "numa-distance-map-v1";

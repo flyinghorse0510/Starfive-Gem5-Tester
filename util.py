@@ -1,6 +1,7 @@
 import subprocess, os, sys
 import yaml
 import logging
+from datetime import datetime
 from pydantic.v1.utils import deep_update
 
 
@@ -260,3 +261,70 @@ def extract_to_dir(archivedFilePath: str, targetDir: str) -> bool:
 
     # none extension match, currently not supported file type
     return False
+
+# get the list of files with (optionally) specified file-name extension under the given directory (non-recursive)
+def get_file_list(targetDir: str, fileExtList: list = None):
+    fileList = [os.path.join(targetDir, f) for f in os.listdir(targetDir) if os.path.isfile(os.path.join(targetDir, f))]
+    if fileExtList is not None and len(fileExtList) > 0:
+        filteredFileList = []
+        for filePath in fileList:
+            fileExt = os.path.splitext(filePath)[1]
+            for ext in fileExtList:
+                if ext == fileExt:
+                    filteredFileList.append(filePath)
+                    break
+        return filteredFileList
+    else:
+        return fileList
+
+# get current timestamp in string format
+def get_current_timestamp() -> str:
+    return datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
+
+# get current username
+def get_current_user() -> str:
+    return os.environ["USER"]
+
+# construct environment variable which can force to load specific shared libraries
+# if `libPath` is invalid, "" will be returned
+# if `libPath` is a shared library, it will be force-loaded
+# if `libPath` is a directory, all shared libraries under that folder will be force-loaded (recursive load not supported currently)
+# it is highly recommended that `libPath` is an absolute path
+def force_load_lib(libPath: str, hintUser: bool = False) -> str:
+    forceLoadStr = "LD_PRELOAD=\""
+    
+    # invalid path
+    if libPath is None or type(libPath) != str or len(libPath) == 0:
+        return ""
+    if not os.path.exists(libPath):
+        return ""
+    
+    # path is file
+    if os.path.isfile(libPath):
+        # check if the file is a shared library
+        if not libPath.endswith(".so"):
+            # not a shared library
+            return ""
+        if hintUser:
+            print(f"Force loading shared library ==> {libPath}")
+        forceLoadStr += f"{libPath}\""
+        return forceLoadStr
+    
+    # path is directory
+    if os.path.isdir(libPath):
+        # get all shared libraries under that folder
+        libList = get_file_list(libPath, [".so"])
+        if len(libList) == 0:
+            # no shared libraries found
+            return ""
+        for sharedLib in libList:
+            forceLoadStr += f" {sharedLib}"
+            if hintUser:
+                print(f"Force load shared library ==> {sharedLib}")
+        forceLoadStr += "\""
+        return forceLoadStr
+    
+    return ""
+    
+    
+    

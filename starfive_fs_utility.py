@@ -87,7 +87,79 @@ def decompile_dtb() -> bool:
     return True if exitCode == 0 else False
 
 
+def get_qemu_src(repo: str = "https://github.com/flyinghorse0510/qemu.git", branch: str = "stable-8.1", srcPath: str = "img/qemu"):
+    raise NotImplementedError
+    
+def build_install_qemu(srcPath: str = "img/qemu"):
+    raise NotImplementedError
+
+def start_qemu_system_emulation(kernelPath: str, diskPath: str, numCpu: int, numMem: int, arch: str = "aarch64", extraPars: dict = {}, copyDisk: bool = True, newDiskName: str = None, qemuPath: str = None, systemEmulation = True, machine: str = "virt", cpuFeature: str = "max"):
+    user = util.get_current_user()
+    repoRoot = util.get_repo_root()
+    scriptRoot = util.get_script_root()
+    timeStamp = util.get_current_timestamp()
+    if qemuPath is None:
+        qemuPath = os.path.join("/home", user, "opt", "qemu")
+    
+    if systemEmulation:
+        qemuBinName = f"qemu-system-{arch}"
+    else:
+        raise NotImplementedError
+    
+    
+    qemuBinPath = os.path.join(qemuPath, "bin", qemuBinName)
+    qemuLibPath = os.path.join(qemuPath, "lib", "x86_64-linux-gnu")
+    print(f"QEMU path ==> {qemuPath}")
+    print(f"QEMU binary path ==> {qemuBinPath}")
+    print(f"QEMU library path ==> {qemuLibPath}")
+    
+    
+    envVar = util.force_load_lib(qemuLibPath, hintUser = True)
+    
+    # [!important] we should support to use qemu disk image format combined with snapshot in the future
+    diskName = os.path.basename(diskPath)
+    runDiskName = diskName if not copyDisk else f"{timeStamp}_{diskName}"
+    if newDiskName is not None:
+        runDiskName = newDiskName
+    runDiskPath = os.path.join(os.path.dirname(diskPath), runDiskName)
+    if copyDisk:
+        print(f"Copying disk from {diskPath} to {runDiskPath}")
+        _, _, retCode = util.exec_shell_cmd(f"cp {diskPath} {runDiskPath}", directStdout=True, directStderr=True)
+        if retCode != 0:
+            raise ValueError("Disk copy failed!")
+    print(f"Using disk image ==> {runDiskPath}")
+    print(f"Running Linux kernel ==> {kernelPath}")
+    
+    qemuCmdLine = f"{envVar} {qemuBinPath}"
+    # specify machine
+    qemuCmdLine += f" -machine {machine}"
+    # specify cpu features and cpu
+    qemuCmdLine += f" -cpu {cpuFeature} -smp 4"
+    # specify memory size
+    qemuCmdLine += f" -m {numMem}"
+    # specify disk image
+    qemuCmdLine += f" -drive if=none,file={runDiskPath},format=raw,id=disk0 -device virtio-blk-device,drive=disk0"
+    # specify kernel
+    qemuCmdLine += f" -kernel {kernelPath}"
+    # kernel parameters
+    qemuCmdLine += f" -append \"root=/dev/vda rw console=ttyAMA0\""
+    # specify network and port forwarding
+    qemuCmdLine += f" -netdev user,id=usernet,hostfwd=tcp::6666-:22 -device virtio-net-device,netdev=usernet"
+    # extra parameters
+    qemuCmdLine += f" -nographic"
+    # debug flags
+    qemuCmdLine += f" -d guest_errors"
+    
+    print(qemuCmdLine)
+    
+    
+    
+
 if __name__ == "__main__":
     # download_official_prebuilt_imgs()
-    compile_dts()
-    decompile_dtb()
+    # compile_dts()
+    # decompile_dtb()
+    scriptRoot = util.get_script_root()
+    kernelPath = os.path.join(scriptRoot, "img/kernel_bootloader/binaries/Image.arm64.v4.15.starfive_numa")
+    diskPath = os.path.join(scriptRoot, "img/disk_img/expanded-ubuntu-18.04-arm64-docker.img")
+    start_qemu_system_emulation(kernelPath=kernelPath, diskPath=diskPath, numCpu=2, numMem=16*1024, newDiskName="qemu-gem5-ubuntu-18.04-arm64.img", copyDisk=False)

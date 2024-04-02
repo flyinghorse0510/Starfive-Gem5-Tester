@@ -23,3 +23,6 @@ extra_flags:
   - param 'system.realview.gic.gem5_extensions = True'    # full-system simulation required
   # - ruby
   # - wait-gdb
+
+num-dirs: [2]                             # total memory controllers
+num-cpus: [16]                             # total cpus
