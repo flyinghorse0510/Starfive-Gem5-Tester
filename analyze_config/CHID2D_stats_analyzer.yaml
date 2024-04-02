@@ -59,43 +59,43 @@ target:
       type: [int]
     
     l1dTbeUtil:
-      pattern: 'system.cpu(\d+).l1d.avg_util( +)([\.\d]+)( +)# TBE Request Utilization \(Unspecified\)'
+      pattern: 'system.cpu(\d*).l1d.avg_util( +)([\.\d]+)( +)# TBE Request Utilization \(Unspecified\)'
       location: [3]
       type: [float]
       reduce: "+="
     
     l2RetryAcks:
-      pattern: 'system.cpu(\d+).l2.retryAcks( +)(\d+)'
+      pattern: 'system.cpu(\d*).l2.retryAcks( +)(\d+)'
       location: [3]
       type: [int]
       reduce: "+="
 
     rnfTbeUtil:
-      pattern: 'system.cpu(\d+).l2.avg_util( +)([\.\d]+)( +)# TBE Request Utilization \(Unspecified\)'
+      pattern: 'system.cpu(\d*).l2.avg_util( +)([\.\d]+)( +)# TBE Request Utilization \(Unspecified\)'
       location: [3]
       type: [float]
       reduce: "+="
 
     haTbeUtil:
-      pattern: 'system.ruby.hAs(\d+).cntrl.avg_util( +)([\.\d]+)( +)# Avg\. utilization \(Unspecified\)'
+      pattern: 'system.ruby.hAs(\d*).cntrl.avg_util( +)([\.\d]+)( +)# Avg\. utilization \(Unspecified\)'
       location: [3]
       type: [float]
       reduce: "+="
     
     snfTbeUtil:
-      pattern: 'system.ruby.snfs(\d+).cntrl.avg_util( +)([\.\d]+)( +)# TBE Request Utilization \(Unspecified\)'
+      pattern: 'system.ruby.snfs(\d*).cntrl.avg_util( +)([\.\d]+)( +)# TBE Request Utilization \(Unspecified\)'
       location: [3]
       type: [float]
       reduce: "+="
     
     incomingReqHATraffic :
-      pattern: 'system\.ruby\.hAs(\d+)\.cntrl\.inTransLatHist\.(\S+)\.total( +)(\d+)'
+      pattern: 'system\.ruby\.hAs(\d*)\.cntrl\.inTransLatHist\.(\S+)\.total( +)(\d+)'
       location: [4]
       type: [float]
       reduce: "+="
     
     incomingCopyBackHATraffic :
-      pattern: 'system\.ruby\.hAs(\d+)\.cntrl\.inTransLatHist\.(WriteEvictFull|WriteBackFull)\.total( +)(\d+)'
+      pattern: 'system\.ruby\.hAs(\d*)\.cntrl\.inTransLatHist\.(WriteEvictFull|WriteBackFull)\.total( +)(\d+)'
       location: [4]
       type: [float]
       reduce: "+="
