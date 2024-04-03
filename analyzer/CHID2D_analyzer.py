@@ -128,12 +128,31 @@ def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) 
     if l2RetryAcks is not None :
         l2RetryAcks = float(l2RetryAcks)
         l2RetryAcksAvg = l2RetryAcks/numGenCpus
+    l1dhits = check_and_fetch_key(extractedPars,"l1dhit",0)
+    l1dacc = check_and_fetch_key(extractedPars,"l1dacc",0)
+    l1dHitRate = 0
+    if l1dacc > 0 :
+        l1dHitRate = float(l1dhits/l1dacc)
+    l2hits = check_and_fetch_key(extractedPars,"l2hit",0)
+    l2acc = check_and_fetch_key(extractedPars,"l2acc",0)
+    l2HitRate = 0
+    if l2acc > 0 :
+        l2HitRate = float(l2hits/l2acc)
+    l3hits = check_and_fetch_key(extractedPars,"hnfHit",0)
+    l3acc = check_and_fetch_key(extractedPars,"hnfacc",0)
+    l3HitRate = 0
+    if l3acc is not None :
+        if l3acc > 0 :
+            l3HitRate = float(l3hits/l3acc)
     return {
         "L1D_Occupancy": l1dTbeUtilAvg,
         "L2RetryAcks": l2RetryAcksAvg,
         "RNF_Occupancy": rnfTbeUtilAvg,
         "HA_Occupancy": haTbeUtilAvg,
-        "SNF_Occupancy": snfTbeUtilAvg
+        "SNF_Occupancy": snfTbeUtilAvg,
+        "L1D_HitRate": l1dHitRate,
+        "L2_HitRate": l2HitRate,
+        "L3_HitRate": l3HitRate
     }
 
 def getHASnoopFilterMissRate(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
@@ -196,7 +215,7 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
     TransmitRetryD2D = "Transmit" if transmit_retryack else "Absorb"
     numNormDirs = int(numDirs / numDies)
     numNormL3caches = int(numL3Caches / numDies)
-    workset = str(int(sizeWs / 1024)) + "KiB"
+    workset = str(float(sizeWs / 1024)) + "KiB"
     num_DDR = check_and_fetch_key(runtimeConfig, "DDR-loc-num", 0)
     num_DDR_side = "Unknown"
     if (num_DDR == 2) :

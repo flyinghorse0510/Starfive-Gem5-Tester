@@ -40,13 +40,45 @@ target:
 
     hnfHit:
       pattern: 'system.ruby.hnf(\d*).cntrl.cache.m_demand_hits( +)(\d+)'
-      location: [1, 3]
-      type: [int, int]
+      location: [3]
+      type: [int]
+      reduce: "+="
 
     hnfMiss:
       pattern: 'system.ruby.hnf(\d*).cntrl.cache.m_demand_misses( +)(\d+)'
-      location: [1, 3]
-      type: [int, int]
+      location: [3]
+      type: [int]
+      reduce: "+="
+    
+    hnfacc:
+      pattern: 'system.ruby.hnf(\d*).cntrl.cache.m_demand_accesses( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+    
+    l1dhit:
+      pattern: 'system.cpu(\d*).l1d.cache.m_demand_hits( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+    
+    l1dacc:
+      pattern: 'system.cpu(\d*).l1d.cache.m_demand_accesses( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+    
+    l2hit:
+      pattern: 'system.cpu(\d*).l2.cache.m_demand_hits( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+    
+    l2acc:
+      pattern: 'system.cpu(\d*).l2.cache.m_demand_accesses( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
 
     hostSeconds:
       pattern: 'hostSeconds( +)(\d+)'
@@ -113,31 +145,34 @@ summary:
     - {data: "l1i_size", head: "L1i Size"}
     - {data: "l2_size", head: "L2 Size"}
     - {data: "l3_size", head: "L3 Size"}
-    - {data: "HASnoopFilter", head: "HASnoopFilter"}
-    - {data: "HNFSnoopFilter", head: "HNFSnoopFilter"}
-    - {data: "genEvictOnReplHnf", head: "HNF to HA Eviction Type"}
-    - {data: "ha-snoopfilter-cov-factor", head: "HA SnoopFilter coverage factor"}
-    - {data: "num-RNF-TBE", head: "L2 TBEs"}
-    - {data: "num-HA-TBE", head: "HA TBEs"}
-    - {data: "num-SNF-TBE", head: "SNF TBEs"}
-    - {data: "L1D_Occupancy", head: "L1D Utilization Avg"}
-    - {data: "RNF_Occupancy", head: "RNF Utilization Avg"}
-    - {data: "L2RetryAcks", head: "L2_L1RetryAcks"}
-    - {data: "HA_Occupancy", head: "HA Utilization Avg"}
-    - {data: "SNF_Occupancy", head: "SNF Utilization Avg"}
-    - {data: "simple-ext-link-bw-factor", head: "ext link bw"}
-    - {data: "simple-int-link-bw-factor", head: "int link bw"}
-    - {data: "num_DDR", head: "Num DDRs"}
-    - {data: "num_DDR_side", head: "DDR locations"}
+    # - {data: "HASnoopFilter", head: "HASnoopFilter"}
+    # - {data: "HNFSnoopFilter", head: "HNFSnoopFilter"}
+    # - {data: "genEvictOnReplHnf", head: "HNF to HA Eviction Type"}
+    # - {data: "ha-snoopfilter-cov-factor", head: "HA SnoopFilter coverage factor"}
+    # - {data: "num-RNF-TBE", head: "L2 TBEs"}
+    # - {data: "num-HA-TBE", head: "HA TBEs"}
+    # - {data: "num-SNF-TBE", head: "SNF TBEs"}
+    # - {data: "L1D_Occupancy", head: "L1D Utilization Avg"}
+    # - {data: "RNF_Occupancy", head: "RNF Utilization Avg"}
+    # - {data: "L2RetryAcks", head: "L2_L1RetryAcks"}
+    # - {data: "HA_Occupancy", head: "HA Utilization Avg"}
+    # - {data: "SNF_Occupancy", head: "SNF Utilization Avg"}
+    # - {data: "simple-ext-link-bw-factor", head: "ext link bw"}
+    # - {data: "simple-int-link-bw-factor", head: "int link bw"}
+    # - {data: "num_DDR", head: "Num DDRs"}
+    # - {data: "num_DDR_side", head: "DDR locations"}
     - {data: "workset", head: "Working Set"}
-    - {data: "TransmitRetryD2D", head: "Transmit or Absorb retry"}
-    - {data: "outstanding-req", head: "CPU Max-Outstanding"}
-    - {data: "accessRegion", head: "Region"}
+    # - {data: "TransmitRetryD2D", head: "Transmit or Absorb retry"}
+    # - {data: "outstanding-req", head: "CPU Max-Outstanding"}
+    # - {data: "accessRegion", head: "Region"}
     - {data: "maxloads", head: "Load Factor"}
-    - {data: "percentCopyBackTraffic", head: "Percent of copyback (e.g. WriteEvicts) traffic to HA"}
+    # - {data: "percentCopyBackTraffic", head: "Percent of copyback (e.g. WriteEvicts) traffic to HA"}
     - {data: "totalReadBandWidth", head: "Total Bandwidth(GBps)"}
     - {data: "normReadBandwidth", head: "Average Bandwidth(GBps)"}
     - {data: "readLatency", head: "Read Latency(Cycles)"}
-    - {data: "num_txremap_entries", head: "Num Tx Remap"}
-    - {data: "num_rxremap_entries", head: "Num Rx Remap"}
-    - {data: "d2d_traversal_latency", head: "D2D Link Latency(Cycle)"}
+    # - {data: "num_txremap_entries", head: "Num Tx Remap"}
+    # - {data: "num_rxremap_entries", head: "Num Rx Remap"}
+    # - {data: "d2d_traversal_latency", head: "D2D Link Latency(Cycle)"}
+    - {data: "L1D_HitRate", head: "L1D_HitRate"}
+    - {data: "L2_HitRate", head: "L2_HitRate"}
+    - {data: "L3_HitRate", head: "L3_HitRate"}
