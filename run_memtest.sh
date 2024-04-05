@@ -24,6 +24,7 @@ elif [ "$1" == "config_base" ]
 then
     vim ${baseConfig}
 elif [ "$1" == "analyse" ]
+then
     python3 starfive_analyzer.py --analyze-file analyze_config/CHID2D_stats_analyzer.yaml --target-root ${outputDir}
 else
     echo "Invalid Command: ${1}"

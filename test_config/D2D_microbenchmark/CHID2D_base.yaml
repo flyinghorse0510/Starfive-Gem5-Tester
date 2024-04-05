@@ -29,8 +29,8 @@ chi-config: ["configs/example/noc_config/Starlink2.0_4x4Mesh_D2D.py"] # chi pyth
 
 ## 3. Network Configuration
 network: ["simple"]
-simple-int-link-bw-factor: [40]
-simple-ext-link-bw-factor: [20]
+simple-int-link-bw-factor: [32]
+simple-ext-link-bw-factor: [40]
 chi-data-width: [64]
 link-width-bits: [256]
 vcs-per-vnet: [2]

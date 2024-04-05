@@ -38,3 +38,9 @@ size-ws: [32768, 2048, 512, 128]
 maxloads: [512, 128, 32, 8]
 # total size of accessed memory = size-ws * maxloads
 sys-clock: [1.5GHz]
+
+# compose: [
+#   {
+
+#   }
+# ]
