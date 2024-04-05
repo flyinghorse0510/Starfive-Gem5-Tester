@@ -24,14 +24,17 @@ but that could handle repl and sfrepl
 messages
 """
 
-nocAgentPat  = re.compile(r'system.ruby.networks(\d*)')
-l1AgentPat   = re.compile(r'system.cpu(\d*).l1([id])')
-l2AgentPat   = re.compile(r'system.cpu(\d*).l2')
-hnfAgentPat  = re.compile(r'system.ruby.hnfs(\d*).cntrl')
-haAgentPat   = re.compile(r'system.ruby.hAs(\d*).cntrl')
-snfAgentPat  = re.compile(r'system.ruby.snfs(\d*).cntrl')
-d2dNodePat   = re.compile(r'system.ruby.d2dnodes(\d*).cntrl')
-d2dBridgePat = re.compile(r'system.ruby.d2dbridges(\d*)')
+nocAgentPat1  = re.compile(r'system.ruby.networks(\d*)')
+nocAgentPat2  = re.compile(r'system.ruby.network')
+l1AgentPat    = re.compile(r'system.cpu(\d*).l1([id])')
+l2AgentPat    = re.compile(r'system.cpu(\d*).l2')
+hnfAgentPat1  = re.compile(r'system.ruby.hnfs(\d*).cntrl')
+hnfAgentPat2  = re.compile(r'system.ruby.hnf(\d*).cntrl')
+haAgentPat    = re.compile(r'system.ruby.hAs(\d*).cntrl')
+snfAgentPat1  = re.compile(r'system.ruby.snfs(\d*).cntrl')
+snfAgentPat2  = re.compile(r'system.ruby.snf(\d*).cntrl')
+d2dNodePat    = re.compile(r'system.ruby.d2dnodes(\d*).cntrl')
+d2dBridgePat  = re.compile(r'system.ruby.d2dbridges(\d*)')
 statisticDict = {}
 addrList = []
 
@@ -77,26 +80,35 @@ class Traversal(object):
                 statisticDict[int(addr, 16)] = (f"{addr}", f"{deqcyc}")
 
 def translateAgentName(agent):
-    nocAgentMtch  = nocAgentPat.search(agent)
+    nocAgentMtch1 = nocAgentPat1.search(agent)
+    nocAgentMtch2 = nocAgentPat2.search(agent)
     l1AgentMtch   = l1AgentPat.search(agent)
     l2AgentMtch   = l2AgentPat.search(agent)
-    hnfAgentMtch  = hnfAgentPat.search(agent)
+    hnfAgentMtch1 = hnfAgentPat1.search(agent)
+    hnfAgentMtch2 = hnfAgentPat2.search(agent)
     haAgentMtch   = haAgentPat.search(agent)
-    snfAgentMtch  = snfAgentPat.search(agent)
+    snfAgentMtch1 = snfAgentPat1.search(agent)
+    snfAgentMtch2 = snfAgentPat2.search(agent)
     d2dNodeMtch   = d2dNodePat.search(agent)
     d2dBridgeMtch = d2dBridgePat.search(agent)
-    if nocAgentMtch :
-        return f'Die{nocAgentMtch.group(1)}'
+    if nocAgentMtch1 :
+        return f'Die{nocAgentMtch1.group(1)}'
+    if nocAgentMtch2 :
+        return f'NoC'
     elif l1AgentMtch :
         return f'cpu{l1AgentMtch.group(1)}.l1{l1AgentMtch.group(2)}'
     elif l2AgentMtch :
         return f'cpu{l2AgentMtch.group(1)}.l2'
-    elif hnfAgentMtch :
-        return f'hnf{hnfAgentMtch.group(1)}'
+    elif hnfAgentMtch1 :
+        return f'hnf{hnfAgentMtch1.group(1)}'
+    elif hnfAgentMtch2 :
+        return f'hnf{hnfAgentMtch2.group(1)}'
     elif haAgentMtch :
         return f'hA{haAgentMtch.group(1)}'
-    elif snfAgentMtch :
-        return f'snf{snfAgentMtch.group(1)}'
+    elif snfAgentMtch1 :
+        return f'snf{snfAgentMtch1.group(1)}'
+    elif snfAgentMtch2 :
+        return f'snf{snfAgentMtch2.group(1)}'
     elif d2dNodeMtch :
         return f'd2dNode{d2dNodeMtch.group(1)}'
     elif d2dBridgeMtch :
