@@ -1,0 +1,68 @@
+include: ["analyze_config/CHID2D_stats_analyzer.yaml"]
+
+target:
+  "stats.txt":
+    aveLoadLatency:
+      pattern: 'system\.ruby\.RequestType\.LD\.latency_hist_seqr::mean\s+([\.\d]+)'
+      location: [1]
+      type: [float]
+
+    aveStoreLatency:
+      pattern: 'system\.ruby\.RequestType\.ST\.latency_hist_seqr::mean\s+([\.\d]+)'
+      location: [1]
+      type: [float]
+
+summary:
+  "d2d_stats_analyzed":
+    - {data: "fsScript", head: "Benchmark"}
+    - {data: "hostSeconds", head: "Run Time(s)"}
+    - {data: "hostHours", head: "Run Time(h)"}
+    - {data: "simSeconds", head: "Simulated Time(s)"}
+    - {data: "aveCPUIPC", head: "Average CPU IPC"}
+    - {data: "aveLoadLatency", head: "Average Load Latency(Cycles)"}
+    - {data: "aveStoreLatency", head: "Average Store Latency(Cycles)"}
+    # - {data: "hostMemory", head: "Memory Usage"}
+    - {data: "num-dies", head: "Dies(total)"}
+    - {data: "numNormDirs", head: "Memory Controllers(per Die)"}
+    - {data: "num-cpus", head: "CPUs"}
+    # - {data: "numGenCpus", head: "CPUs(total generating)"}
+    # - {data: "AccPattern", head: "Access Pattern"}
+    - {data: "numNormL3caches", head: "LLCs(per Die)"}
+    - {data: "l1d_size", head: "L1d Size"}
+    - {data: "l1i_size", head: "L1i Size"}
+    - {data: "l2_size", head: "L2 Size"}
+    - {data: "l3_size", head: "L3 Size"}
+    # - {data: "HASnoopFilter", head: "HASnoopFilter"}
+    # - {data: "HNFSnoopFilter", head: "HNFSnoopFilter"}
+    # - {data: "genEvictOnReplHnf", head: "HNF to HA Eviction Type"}
+    # - {data: "ha-snoopfilter-cov-factor", head: "HA SnoopFilter coverage factor"}
+    - {data: "num-RNF-TBE", head: "L2 TBEs"}
+    - {data: "num-HA-TBE", head: "HA TBEs"}
+    - {data: "num-SNF-TBE", head: "SNF TBEs"}
+    # - {data: "L1D_Occupancy", head: "L1D Utilization Avg"}
+    # - {data: "RNF_Occupancy", head: "RNF Utilization Avg"}
+    # - {data: "L2RetryAcks", head: "L2_L1RetryAcks"}
+    # - {data: "HA_Occupancy", head: "HA Utilization Avg"}
+    # - {data: "SNF_Occupancy", head: "SNF Utilization Avg"}
+    # - {data: "simple-ext-link-bw-factor", head: "ext link bw"}
+    # - {data: "simple-int-link-bw-factor", head: "int link bw"}
+    # - {data: "num_DDR", head: "Num DDRs"}
+    # - {data: "num_DDR_side", head: "DDR locations"}
+    # - {data: "workset", head: "Working Set"}
+    # - {data: "TransmitRetryD2D", head: "Transmit or Absorb retry"}
+    # - {data: "outstanding-req", head: "CPU Max-Outstanding"}
+    # - {data: "accessRegion", head: "Region"}
+    # - {data: "maxloads", head: "Load Factor"}
+    # - {data: "percentCopyBackTraffic", head: "Percent of copyback (e.g. WriteEvicts) traffic to HA"}
+    # - {data: "totalReadBandWidth", head: "Total Read Bandwidth(GBps)"}
+    # - {data: "normReadBandwidth", head: "Average Read Bandwidth(GBps)"}
+    # - {data: "totalWriteBandwidth", head: "Total Write Bandwidth(GBps)"}
+    # - {data: "normWriteBandwidth", head: "Average Write Bandwidth(GBps)"}
+    # - {data: "readLatency", head: "Read Latency(Cycles)"}
+    # - {data: "writeLatency", head: "Store Latency(Cycles)"}
+    # - {data: "num_txremap_entries", head: "Num Tx Remap"}
+    # - {data: "num_rxremap_entries", head: "Num Rx Remap"}
+    # - {data: "d2d_traversal_latency", head: "D2D Link Latency(Cycle)"}
+    - {data: "L1D_HitRate", head: "L1D_HitRate"}
+    - {data: "L2_HitRate", head: "L2_HitRate"}
+    - {data: "L3_HitRate", head: "L3_HitRate"}

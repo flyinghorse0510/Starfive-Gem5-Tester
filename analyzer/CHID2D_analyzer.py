@@ -48,7 +48,7 @@ def getNumCpus(runtimeConfig: dict) -> int :
     else :
         return -1
     
-def analyze_read_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
+def analyze_access_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
     totalNumReads = check_and_fetch_key(extractedPars, "totalNumReads", 0)
     totalNumWrites = check_and_fetch_key(extractedPars, "totalNumWrites", 0)
     simTicks = check_and_fetch_key(extractedPars, "simTicks", 0)
@@ -56,32 +56,48 @@ def analyze_read_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir: 
     ticksPerCycle = check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
     maxOutstand = check_and_fetch_key(runtimeConfig, "outstanding-req", 0)
 
-    if (maxOutstand is None) or (maxOutstand == 1):
-        return {}
+    # if (maxOutstand is None) or (maxOutstand == 1):
+    #     # return {}
 
     numGenCpus = getNumGenCpus(runtimeConfig)
 
-    totalBandwidth = None
-    normBandwidth = None
+    totalReadBandwidth = None
+    totalWriteBandwidth = None
+    normReadBandwidth = None
+    normWriteBandwidth = None
     if (
         ((numGenCpus is not None) and (numGenCpus > 0))
-        and ((totalNumReads is not None) and (totalNumReads > 0))
-        and ((totalNumWrites is not None) and (totalNumWrites == 0))
+        and ((totalNumReads is not None) and (totalNumReads >= 0))
+        and ((totalNumWrites is not None) and (totalNumWrites >= 0))
         and ((simFreq is not None) and (simFreq > 0))
         and ((ticksPerCycle is not None) and (ticksPerCycle > 0))
     ):
-        totalBandwidth = (
+        totalReadBandwidth = (
             float(totalNumReads)
             * 64
             / (float(simTicks) / float(simFreq) * 1000 * 1000 * 1000)
         )
-        normBandwidth = totalBandwidth / numGenCpus
+        normReadBandwidth = totalReadBandwidth / numGenCpus
+        
+        totalWriteBandwidth = (
+            float(totalNumWrites)
+            * 64
+            / (float(simTicks) / float(simFreq) * 1000 * 1000 * 1000)
+        )
+        normWriteBandwidth = totalWriteBandwidth / numGenCpus
 
     return {
-        "totalReadBandWidth": totalBandwidth,
-        "normReadBandwidth": normBandwidth,
+        "totalReadBandWidth": totalReadBandwidth,
+        "totalWriteBandwidth": totalWriteBandwidth,
+        "normReadBandwidth": normReadBandwidth,
+        "normWriteBandwidth": normWriteBandwidth,
         "numGenCpus": numGenCpus
     }
+
+# for back-ward compatible
+def analyze_read_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
+    return analyze_access_bandwidth(runtimeConfig, extractedPars, targetDir)
+    
 
 def analyze_copyback_traffic(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
     incomingReqHATraffic      = check_and_fetch_key(extractedPars,"incomingReqHATraffic",0)
@@ -154,11 +170,20 @@ def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) 
         "L2_HitRate": l2HitRate,
         "L3_HitRate": l3HitRate
     }
+    
+def analyze_cpu_ipc(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
+    totalCPUCycles = check_and_fetch_key(extractedPars, "totalCPUCycles", 0)
+    totalCPUInsts = check_and_fetch_key(extractedPars, "totalCPUInsts", 0)
+    
+    if totalCPUCycles is not None and totalCPUInsts is not None:
+        return {"aveCPUIPC": totalCPUInsts / totalCPUCycles}
+    else:
+        return {}
 
 def getHASnoopFilterMissRate(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
     pass
 
-def analyze_read_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
+def analyze_access_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
     totalNumReads = check_and_fetch_key(extractedPars, "totalNumReads", 0)
     totalNumWrites = check_and_fetch_key(extractedPars, "totalNumWrites", 0)
     totalLatency = check_and_fetch_key(extractedPars, "totalLatency", 0)
@@ -166,35 +191,52 @@ def analyze_read_latency(runtimeConfig: dict, extractedPars: dict, targetDir: st
     ticksPerCycle = check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
     maxOutstand = check_and_fetch_key(runtimeConfig, "outstanding-req", 0)
 
-    if (maxOutstand is None):
     # if (maxOutstand is None) or (maxOutstand != 1):
-        return {}
+        # return {}
 
     numGenCpus = getNumGenCpus(runtimeConfig)
 
-    normLatency = None
+    normReadLatency = None
+    normWriteLatency = None
 
     if (
         ((numGenCpus is not None) and (numGenCpus > 0))
-        and ((totalNumReads is not None) and (totalNumReads > 0))
-        and ((totalNumWrites is not None) and (totalNumWrites == 0))
+        and ((totalNumReads is not None) and (totalNumReads >= 0))
+        and ((totalNumWrites is not None) and (totalNumWrites >= 0))
         and ((simTicks is not None) and (simTicks > 0))
         and ((ticksPerCycle is not None) and (ticksPerCycle > 0))
         and ((totalLatency is not None) and (totalLatency > 0))
     ):
-        normLatency = int(
-            float(totalLatency) / float(totalNumReads * ticksPerCycle / numGenCpus)
-        )
+        if totalNumReads != 0:
+            normReadLatency = int(
+                float(totalLatency) / float(totalNumReads * ticksPerCycle / numGenCpus)
+            )
+        if totalNumWrites != 0:
+            normWriteLatency = int(
+                float(totalLatency) / float(totalNumWrites * ticksPerCycle / numGenCpus)
+            )
 
-    return {"readLatency": normLatency, "numGenCpus": numGenCpus}
+    return {"readLatency": normReadLatency, "writeLatency": normWriteLatency, "numGenCpus": numGenCpus}
+
+# for back-ward compatible
+def analyze_read_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
+    return analyze_access_latency(runtimeConfig, extractedPars, targetDir)
+    
 
 def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
     numDies = check_and_fetch_key(runtimeConfig, "num-dies", 0)
     numDirs = check_and_fetch_key(runtimeConfig, "num-dirs", 0)
     sizeWs = check_and_fetch_key(runtimeConfig, "size-ws", 0)
     numL3Caches = check_and_fetch_key(runtimeConfig, "num-l3caches", 0)
+    fsScript = check_and_fetch_key(runtimeConfig, "script", 0)
+    simSeconds = check_and_fetch_key(extractedPars, "simSeconds", 0)
     hostSeconds = check_and_fetch_key(extractedPars, "hostSeconds", 0)
+    hostHours = hostSeconds / 3600.0 if hostSeconds is not None else None
     hostMemory = check_and_fetch_key(extractedPars, "hostMemory", 0)
+    aveLoadLatency = check_and_fetch_key(extractedPars, "aveLoadLatency", 0)
+    aveStoreLatency = check_and_fetch_key(extractedPars, "aveStoreLatency", 0)
+    
+    
     if hostMemory is not None:
         hostMemory = "%.2lf" %(float(hostMemory) / 1024 / 1024) + "GiB"
     allowInfiniteSFEntriesHA = check_and_fetch_key(
@@ -215,7 +257,7 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
     TransmitRetryD2D = "Transmit" if transmit_retryack else "Absorb"
     numNormDirs = int(numDirs / numDies)
     numNormL3caches = int(numL3Caches / numDies)
-    workset = str(float(sizeWs / 1024)) + "KiB"
+    workset = None if sizeWs is None else str(float(sizeWs / 1024)) + "KiB"
     num_DDR = check_and_fetch_key(runtimeConfig, "DDR-loc-num", 0)
     num_DDR_side = "Unknown"
     if (num_DDR == 2) :
@@ -241,7 +283,7 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
         else:
             accessRegion = "Cross-Die"
 
-    return {
+    analyzedDict = {
         "AccPattern": accPattern,
         "numNormDirs": numNormDirs,
         "numNormL3caches": numNormL3caches,
@@ -254,8 +296,16 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
         "hostMemory": hostMemory,
         "HASnoopFilter": sfHAEntries,
         "HNFSnoopFilter": sfHNFEntries,
-        "genEvictOnReplHnf": genEvictOnReplHnf
+        "genEvictOnReplHnf": genEvictOnReplHnf,
+        "simSeconds": simSeconds,
+        "hostHours": hostHours,
+        "aveLoadLatency": aveLoadLatency,
+        "aveStoreLatency": aveStoreLatency
     }
+    if fsScript is not None:
+        analyzedDict["fsScript"] = os.path.splitext(os.path.basename(fsScript))[0]
+        
+    return analyzedDict
 
 def analyze_trace_request_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
     ticksPerCycle = check_and_fetch_key(extractedPars, "ticksPerCycle", 0)

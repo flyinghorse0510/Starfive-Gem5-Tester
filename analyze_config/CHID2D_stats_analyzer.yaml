@@ -1,7 +1,7 @@
 include: []
 WORKERS: 32
 callback:
-  "analyze_read_bandwidth_latency": {file: "analyzer/CHID2D_analyzer", func: ["analyze_read_bandwidth", "analyze_read_latency", "analyze_mshr_util", "analyze_copyback_traffic", "dump_parameters"]}
+  "analyze_read_bandwidth_latency": {file: "analyzer/CHID2D_analyzer", func: ["analyze_access_bandwidth", "analyze_access_latency", "analyze_mshr_util", "analyze_copyback_traffic", "analyze_cpu_ipc", "dump_parameters"]}
 
 target:
   "stats.txt":
@@ -33,25 +33,42 @@ target:
       location: [2]
       type: [int]
 
+    simSeconds:
+      pattern: 'simSeconds( +)([\.\d]+)'
+      location: [2]
+      type: [float]
+
     simFreq:
       pattern: 'simFreq( +)(\d+)'
       location: [2]
       type: [int]
 
+    totalCPUCycles:
+      pattern: 'system.cpu(\d*).numCycles( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+
+    totalCPUInsts:
+      pattern: 'system.cpu(\d*).exec_context.thread_(\d*).numInsts( +)(\d+)'
+      location: [4]
+      type: [int]
+      reduce: "+="
+
     hnfHit:
-      pattern: 'system.ruby.hnf(\d*).cntrl.cache.m_demand_hits( +)(\d+)'
+      pattern: 'system.ruby.hnf[s]*(\d*).cntrl.cache.m_demand_hits( +)(\d+)'
       location: [3]
       type: [int]
       reduce: "+="
 
     hnfMiss:
-      pattern: 'system.ruby.hnf(\d*).cntrl.cache.m_demand_misses( +)(\d+)'
+      pattern: 'system.ruby.hnf[s]*(\d*).cntrl.cache.m_demand_misses( +)(\d+)'
       location: [3]
       type: [int]
       reduce: "+="
     
     hnfacc:
-      pattern: 'system.ruby.hnf(\d*).cntrl.cache.m_demand_accesses( +)(\d+)'
+      pattern: 'system.ruby.hnf[s]*(\d*).cntrl.cache.m_demand_accesses( +)(\d+)'
       location: [3]
       type: [int]
       reduce: "+="
@@ -81,9 +98,9 @@ target:
       reduce: "+="
 
     hostSeconds:
-      pattern: 'hostSeconds( +)(\d+)'
+      pattern: 'hostSeconds( +)([\.\d]+)'
       location: [2]
-      type: [int]
+      type: [float]
 
     hostMemory:
       pattern: 'hostMemory( +)(\d+)'
@@ -132,9 +149,15 @@ target:
       type: [float]
       reduce: "+="
 
+    parserForceTerminate:
+      pattern: '.*End Simulation Statistics.*'
+      location: []
+      type: []
+
 summary:
   "d2d_stats_analyzed":
-    - {data: "hostSeconds", head: "Run Time"}
+    - {data: "hostSeconds", head: "Run Time(s)"}
+    - {data: "hostHours", head: "Run Time(h)"}
     - {data: "hostMemory", head: "Memory Usage"}
     - {data: "num-dies", head: "Dies(total)"}
     - {data: "numNormDirs", head: "Memory Controllers(per Die)"}
@@ -164,7 +187,7 @@ summary:
     - {data: "workset", head: "Working Set"}
     # - {data: "TransmitRetryD2D", head: "Transmit or Absorb retry"}
     # - {data: "outstanding-req", head: "CPU Max-Outstanding"}
-    # - {data: "accessRegion", head: "Region"}
+    - {data: "accessRegion", head: "Region"}
     - {data: "maxloads", head: "Load Factor"}
     # - {data: "percentCopyBackTraffic", head: "Percent of copyback (e.g. WriteEvicts) traffic to HA"}
     - {data: "totalReadBandWidth", head: "Total Bandwidth(GBps)"}
@@ -176,3 +199,4 @@ summary:
     - {data: "L1D_HitRate", head: "L1D_HitRate"}
     - {data: "L2_HitRate", head: "L2_HitRate"}
     - {data: "L3_HitRate", head: "L3_HitRate"}
+    

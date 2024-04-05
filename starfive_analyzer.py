@@ -23,7 +23,7 @@ def extract_pars(target: str, targetDir: str, analyzeConfig: dict):
         regExp[key] = re.compile(analyzeConfig[key]["pattern"])
 
     extractedPars = {}
-
+    forceExitParser = False
     targetFile = open(targetFilePath, "r")
     for line in targetFile:
         for key in regExp:
@@ -33,6 +33,12 @@ def extract_pars(target: str, targetDir: str, analyzeConfig: dict):
             match = regExp[key].search(line)
             if not match:
                 continue
+            extractedPars['parserTriggered'] = True
+            # force to exit parser
+            if match and key == "parserForceTerminate":
+                forceExitParser = True
+                extractedPars[key].append(True)
+                break
             if len(analyzeConfig[key]["location"]) > 1:
                 parList = []
                 for i in range(len(analyzeConfig[key]["location"])):
@@ -57,7 +63,8 @@ def extract_pars(target: str, targetDir: str, analyzeConfig: dict):
                     extractedPars[key].append(
                         eval(f"{analyzeConfig[key]['type'][0]}(_par)")
                     )
-                    
+        if forceExitParser:
+            break   
     targetFile.close()
 
     return extractedPars
@@ -102,7 +109,10 @@ def analyze_process(config: dict):
     # hint users about the progress
     # print(f"[{taskIdx}] Analyzing in {targetDir}")
     # execute the analyze function
-    extractedPars = analyzeFunc(runtimeConfig, extractedPars, targetDir)
+    if "parserTriggered" in extractedPars and ("parserForceTerminate" not in extractedPars or len(extractedPars["parserForceTerminate"]) > 0):
+        extractedPars = analyzeFunc(runtimeConfig, extractedPars, targetDir)
+    else:
+        logging.warning(f"{targetDir} will not be analyzed because of incomplete stats")
 
     return {"targetDir": targetDir, "extractedPars": extractedPars}
 
