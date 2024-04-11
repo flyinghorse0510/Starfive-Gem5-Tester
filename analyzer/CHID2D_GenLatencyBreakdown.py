@@ -1,7 +1,6 @@
 import re
 import os
-import logging
-import argparse
+import copy as cpy
 import pprint as pp
 import pandas as pd
 from typing import Dict, List
@@ -38,14 +37,99 @@ d2dBridgePat  = re.compile(r'system.ruby.d2dbridges(\d*)')
 statisticDict = {}
 addrList = []
 
+def getVnetId(opcode,msg_type):
+    """
+        Obtain the VCId of 
+        the message. The following convention
+        is used
+        REQ --> 0
+        SNP --> 1
+        RSP --> 2
+        DAT --> 3
+    """
+    if (msg_type=='RubyRequest') :
+        return 0
+    if ((opcode == 'ReadShared') or
+       (opcode == 'ReadNotSharedDirty') or
+       (opcode == 'ReadUnique') or
+       (opcode == 'ReadOnce') or
+       (opcode == 'WriteBackFull') or
+       (opcode == 'WriteCleanFull') or
+       (opcode == 'WriteEvictFull') or
+       (opcode == 'CleanUnique') or
+       (opcode == 'Evict') or
+       (opcode == 'WriteUniqueFull') or
+       (opcode == 'WriteNoSnp') or
+       (opcode == 'WriteNoSnpPtl') or
+       (opcode == 'WriteNoSnpPtl') or
+       (opcode == 'ReadNoSnp') or
+       (opcode == 'MEMORY_READ') or
+       (opcode == 'WriteUniquePtl')) :
+        return 0
+    elif ((opcode == 'SnpSharedFwd') or
+          (opcode == 'SnpNotSharedDirtyFwd') or
+          (opcode == 'SnpUniqueFwd') or
+          (opcode == 'SnpOnce') or
+          (opcode == 'SnpShared') or
+          (opcode == 'SnpUnique') or
+          (opcode == 'SnpCleanInvalid')) :
+        return 1
+    elif ((opcode == 'Comp_I') or
+          (opcode == 'Comp_UC') or
+          (opcode == 'Comp_SC') or
+          (opcode == 'CompDBIDResp') or
+          (opcode == 'DBIDResp') or
+          (opcode == 'Comp') or
+          (opcode == 'CompAck') or
+          (opcode == 'ReadReceipt') or
+          (opcode == 'RespSepData') or
+          (opcode == 'SnpResp_I') or
+          (opcode == 'SnpResp_I_Fwded_UC') or
+          (opcode == 'SnpResp_SC') or
+          (opcode == 'SnpResp_SC_Fwded_SC') or
+          (opcode == 'SnpResp_SC_Fwded_SD_PD') or
+          (opcode == 'SnpResp_UC_Fwded_I') or
+          (opcode == 'SnpResp_UD_Fwded_I') or
+          (opcode == 'SnpResp_SC_Fwded_I') or
+          (opcode == 'SnpResp_SD_Fwded_I')) :
+        return 2
+    elif ((opcode == 'CompData_I') or
+          (opcode == 'CompData_UC') or
+          (opcode == 'CompData_SC') or
+          (opcode == 'CompData_UD_PD') or
+          (opcode == 'CompData_SD_PD') or
+          (opcode == 'DataSepResp_UC') or
+          (opcode == 'CBWrData_UC') or
+          (opcode == 'CBWrData_SC') or
+          (opcode == 'CBWrData_UD_PD') or
+          (opcode == 'CBWrData_SD_PD') or
+          (opcode == 'CBWrData_I') or
+          (opcode == 'NCBWrData') or
+          (opcode == 'SnpRespData_I') or
+          (opcode == 'SnpRespData_I_PD') or
+          (opcode == 'SnpRespData_SC') or
+          (opcode == 'SnpRespData_SC_PD') or
+          (opcode == 'SnpRespData_SD') or
+          (opcode == 'SnpRespData_UD') or
+          (opcode == 'SnpRespData_SC_Fwded_SC') or
+          (opcode == 'SnpRespData_SC_Fwded_SD_PD') or
+          (opcode == 'SnpRespData_SC_PD_Fwded_SC') or
+          (opcode == 'SnpRespData_I_Fwded_SD_PD') or
+          (opcode == 'SnpRespData_I_Fwded_SC')) :
+        return 3
+    else :
+        return -1
+        
 @dataclass
-class AgentMsgTravesal(object):
+class AgentMsgTraversal(object):
     txn: str
     addr: str
     opcode: str
     msg_type: str
     deq_time: int
     agent_name: str
+    vnetId: int
+    delta: float
 
     def __lt__(self,other):
         return self.deq_time < other.deq_time
@@ -58,26 +142,18 @@ class AgentMsgTravesal(object):
     
     def __ge__(self,other):
         return self.deq_time >= other.deq_time
+    
+    def setDelta(self, delta):
+        self.delta = delta
+
+    def getDumpStr(self):
+        return f'{self.agent_name}({self.opcode}),{self.delta}'
 
 @dataclass
 class Traversal(object):
     txn: str
     addr: str
-    agent_list: List[AgentMsgTravesal]
-
-    def dump(self,f2,printHeader):
-        sortedAgentTaversals = sorted(self.agent_list)
-        if printHeader :
-            print('txn,addr,deqcyc,agent,opcode',file=f2)
-        for arr in sortedAgentTaversals :
-            txn = arr.txn
-            addr = arr.addr
-            deqcyc = arr.deq_time
-            agent = arr.agent_name
-            opcode = arr.opcode
-            print(f'{txn},{addr},{deqcyc},{agent},{opcode}',file=f2)
-            if opcode == "NA":
-                statisticDict[int(addr, 16)] = (f"{addr}", f"{deqcyc}")
+    agent_list: Dict[int, List[AgentMsgTraversal]] # The first index is vnetId
 
 def translateAgentName(agent):
     nocAgentMtch1 = nocAgentPat1.search(agent)
@@ -116,7 +192,6 @@ def translateAgentName(agent):
     else :
         return 'NA'
 
-    
 def genMessageLists(trcFile) -> Dict[str,Traversal]:
     req_pat       = re.compile(r'^(\s*\d*): (\S+): txsn: (\S+), addr: (\S+), deq, RubyRequest')
     msg_pat       = re.compile(r'^(\s*\d*): (\S+): txsn: (\S+), addr: (\S+), deq, ([a-zA-Z_]+), ([a-zA-Z_]+)')
@@ -151,39 +226,40 @@ def genMessageLists(trcFile) -> Dict[str,Traversal]:
                 addr     = msg_match.group(4)
                 msg_type = msgTypeToChannelMap.get(msg_match.group(5),'NA')
                 opcode   = msg_match.group(6)
-            agentMsgTraversal = AgentMsgTravesal(
+            vnetId = getVnetId(opcode,msg_type)
+            agentMsgTraversal = AgentMsgTraversal(
                 txn = txn,
                 addr = addr,
                 opcode = opcode,
                 msg_type = msg_type,
                 deq_time = cyc,
-                agent_name = translateAgentName(agent)
+                vnetId = vnetId,
+                agent_name = translateAgentName(agent),
+                delta = 0.0
             )
             if txn != 'NA' and txn != '0x0000000000000000':
                 if txn in allTxns :
-                    allTxns[txn].agent_list.append(agentMsgTraversal)
+                    if not (vnetId in allTxns[txn].agent_list) :
+                        allTxns[txn].agent_list[vnetId] = [agentMsgTraversal]
+                    else :
+                        prevTrvsl = allTxns[txn].agent_list[vnetId][-1]
+                        delta = agentMsgTraversal.deq_time - prevTrvsl.deq_time
+                        if ((prevTrvsl.agent_name == agentMsgTraversal.agent_name) and
+                            (prevTrvsl.msg_type == agentMsgTraversal.msg_type)) :
+                            # Do not append, just increment the delta
+                            prevTrvsl.setDelta(agentMsgTraversal.delta + delta)
+                        else :
+                            agentMsgTraversal.setDelta(delta)
+                            allTxns[txn].agent_list[vnetId].append(agentMsgTraversal)
                 else :
                     allTxns[txn] = Traversal(
                         txn = txn,
                         addr = addr,
-                        agent_list = [agentMsgTraversal]
+                        agent_list = dict([(vnetId, [agentMsgTraversal])])
                     )
                     addrList.append(int(addr, 16))
     return allTxns
 
-def dumpMessages(root_dir, allTxns):
-    dumpDir = os.path.join(root_dir,'LatencyBreakdownDump')
-    os.system(f'mkdir -p {dumpDir}')
-    fl = os.path.join(dumpDir,f'dumpAll.csv')
-    print(f'Writing to {fl}')
-    printHeader = True
-    with open(fl,'w') as f2 :
-        for k,v in allTxns.items():
-            v.dump(f2,printHeader)
-            if printHeader :
-                printHeader = False
-    return fl
-        
 def getAllStatsDir(root_dir):
     # Recursive function to find all files named "stats.txt" in the folder and its subfolders
     def find_output_dirs(folder):
@@ -198,21 +274,36 @@ def getAllStatsDir(root_dir):
     output_dirs = find_output_dirs(root_dir)
     return output_dirs
 
+def analyze_trace_request_latency2(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict :
+    output_dirs = getAllStatsDir(targetDir)
+    for i in range(len(output_dirs)):
+        dumpFileName = os.path.join(output_dirs[i],'breakdownLatency.csv')
+        with open(dumpFileName,'w') as f2 :
+            trcFile  = os.path.join(output_dirs[i],'debug.trace')
+            allTxns  = genMessageLists(trcFile)
+            for k,v in allTxns.items() :
+                dumpStr = f'{k},{v.addr}'
+                trvrls_cnt = 0
+                trvrls_cnt_max = sum([len(v2) for _,v2 in v.agent_list.items()])
+                for vnetId, tmpList in v.agent_list.items() :
+                    dumpStr += f','
+                    sortedAgentList = sorted(tmpList)
+                    for trvsl in sortedAgentList :
+                        dumpStr += trvsl.getDumpStr()
+                        trvrls_cnt += 1
+                        if trvrls_cnt < trvrls_cnt_max :
+                            dumpStr += ','
+                print(dumpStr, file=f2)
+            print(f'Writing to {dumpFileName}')
+    return {}
+
 def main(runtimeConfig: dict, extractedPars: dict, targetDir: str):
     global addrList
     global statisticDict
-    
 
     output_dirs = getAllStatsDir(targetDir)
     for i in range(len(output_dirs)):
         trcFile  = os.path.join(output_dirs[i],'debug.trace')
         allTxns  = genMessageLists(trcFile)
-        dumpFile = dumpMessages(output_dirs[i], allTxns)
-        # allTx = pd.read_csv(dumpFile)
-        # allSNFs = set(['snf0','snf1'])
-        # allTx2 = allTx.query(f'agent in @allSNFs')
-        # with pd.ExcelWriter('SNFReqDump.xlsx') as writer :
-        #     allTx2.to_excel(writer)
-        # break
     
     return {}

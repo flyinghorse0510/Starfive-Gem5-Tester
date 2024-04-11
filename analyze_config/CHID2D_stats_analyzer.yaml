@@ -162,12 +162,14 @@ summary:
     - {data: "num-dies", head: "Dies(total)"}
     - {data: "numNormDirs", head: "Memory Controllers(per Die)"}
     - {data: "numGenCpus", head: "CPUs(total generating)"}
+    - {data: "one_cpu_rnf_loc", head: "CPU Location"}
     - {data: "AccPattern", head: "Access Pattern"}
     - {data: "numNormL3caches", head: "LLCs(per Die)"}
     - {data: "l1d_size", head: "L1d Size"}
     - {data: "l1i_size", head: "L1i Size"}
     - {data: "l2_size", head: "L2 Size"}
     - {data: "l3_size", head: "L3 Size"}
+    # - {data: "simple-int-link-bw-factor", head: "Int BW Factor"}
     # - {data: "HASnoopFilter", head: "HASnoopFilter"}
     # - {data: "HNFSnoopFilter", head: "HNFSnoopFilter"}
     # - {data: "genEvictOnReplHnf", head: "HNF to HA Eviction Type"}
@@ -175,12 +177,12 @@ summary:
     # - {data: "num-RNF-TBE", head: "L2 TBEs"}
     # - {data: "num-HA-TBE", head: "HA TBEs"}
     # - {data: "num-SNF-TBE", head: "SNF TBEs"}
-    # - {data: "L1D_Occupancy", head: "L1D Utilization Avg"}
-    # - {data: "RNF_Occupancy", head: "RNF Utilization Avg"}
+    - {data: "L1D_Occupancy", head: "L1D Utilization Avg"}
+    - {data: "RNF_Occupancy", head: "RNF Utilization Avg"}
     # - {data: "L2RetryAcks", head: "L2_L1RetryAcks"}
-    # - {data: "HA_Occupancy", head: "HA Utilization Avg"}
-    # - {data: "SNF_Occupancy", head: "SNF Utilization Avg"}
-    # - {data: "simple-ext-link-bw-factor", head: "ext link bw"}
+    - {data: "HA_Occupancy", head: "HA Utilization Avg"}
+    - {data: "SNF_Occupancy", head: "SNF Utilization Avg"}
+    - {data: "simple-ext-link-bw-factor", head: "ext link bw"}
     # - {data: "simple-int-link-bw-factor", head: "int link bw"}
     # - {data: "num_DDR", head: "Num DDRs"}
     # - {data: "num_DDR_side", head: "DDR locations"}
