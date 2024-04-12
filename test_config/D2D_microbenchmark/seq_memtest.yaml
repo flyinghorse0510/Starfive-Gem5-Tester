@@ -16,7 +16,7 @@ randomize-acc: [false]
 ratio-read-write: ["1-0"]
 # 1 for latency test, 10000 for bandwidth test
 outstanding-req: [1,10000]                  # max outstanding(concurrent) requests(cpu side)
-addr-intrlvd-or-tiled: [false]
+addr-intrlvd-or-tiled: [true]
 # Intra-Die Mask & Cross-Die Mask
 # no-gen-die: ["1", "0"]
 base_addr_1: [0]

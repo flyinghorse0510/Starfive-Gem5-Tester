@@ -31,11 +31,12 @@ relative_path_list:                       # add repo root path as prefix to the 
   - checkpoint-dir
 gem5_config: ["configs/example/fs_starlink_d2d.py"]                   # gem5 python config file(relative to repo root path)
 chi-config: ["configs/example/noc_config/Starlink2.0_4x4Mesh_D2D.py"] # chi python config file(relative to repo root path)
+numa-str: [1die_1numa]    # NUMA configuration (address space distribution)
 
 ## 3. Network Configuration
 network: ["simple"]
-simple-int-link-bw-factor: [40]
-simple-ext-link-bw-factor: [20]
+simple-ext-link-bw-factor: [72]
+simple-int-link-bw-factor: [36]
 chi-data-width: [64]
 link-width-bits: [256]
 vcs-per-vnet: [2]
@@ -144,6 +145,7 @@ python-config-exclusive-pars:
   - fs_mode
   - debug-start
   - debug-end
+  - compose
 
 ## 9. Debug Flags
 debug_flags: []                           # /（Default: None)

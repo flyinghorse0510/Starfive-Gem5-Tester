@@ -9,8 +9,10 @@ fs_mode: "restore"
 include: ["test_config/D2D_full_system/CHID2D_full_system_base.yaml"]
 # cpu-type: ["NonCachingSimpleCPU"]
 # restore-with-cpu: ["NonCachingSimpleCPU"]
-cpu-type: ["TimingSimpleCPU"]
-restore-with-cpu: ["TimingSimpleCPU"]
+# cpu-type: ["TimingSimpleCPU"]
+# restore-with-cpu: ["TimingSimpleCPU"]
+cpu-type: ["O3CPU"]
+restore-with-cpu: ["O3CPU"]
 # script: ["configs/boot/hack_back_ckpt.rcS"]
 # script:
 #   - "starfive_gem5_tester/img/parsec_scripts/blackscholes_simsmall_2.rcS"
@@ -50,4 +52,4 @@ extra_flags:
   - param 'system.realview.gic.gem5_extensions = True'    # full-system simulation required
   - ruby
   # - wait-gdb
-num-cpus: [2]
+num-cpus: [16]

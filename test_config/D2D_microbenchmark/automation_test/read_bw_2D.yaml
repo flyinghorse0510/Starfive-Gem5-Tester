@@ -1,0 +1,86 @@
+# Starfive Tester Base Config
+# *********************
+# [] represents an array, each element in which will be iterated and tested separately
+# i.e. num-cpus: [2,4], num-dirs: [2,4] means that there will be 4 tests in total
+# *********************
+
+# include other configuration files, included contents will be overwritten by this file if both fileds occur
+include: ['test_config/D2D_microbenchmark/seq_memtest.yaml', 'test_config/D2D_microbenchmark/CHID2D_base.yaml']
+WORKERS: 32
+
+# L1 Cache
+l1d_assoc: [1]
+l1i_assoc: [1]
+# L2 Cache
+l2_assoc: [1]
+# L3 Cache
+l3_assoc: [1]
+num-l3caches: [32]            # total number of l3-caches in the system
+# Total L3 Cache Size = num-l3caches * l3_size 
+
+# TBE settings
+num-HNF-TBE: [32]
+num-RNF-TBE: [32]
+num-SNF-TBE: [32]
+num-HA-TBE: [32]
+ha-SF-TBE: [32]
+outstanding-req: [10000]      # unlimited CPU side outstanding request
+
+# Topology
+num-dies: [2] 
+num-cpus: [2, 4, 8, 16]
+num-dirs: [2]
+numa-str: [1die_1numa]
+
+# total size of accessed memory = size-ws * maxloads
+
+# controls intra-die/corss-die, '0' for cross die, '1' for intra die
+no-gen-die: ["0", "1"]
+
+# total size of accessed memory = size-ws * maxloads
+compose: [
+  # L1 hit read bandwidth
+  {
+    # cache size
+    l1d_size: [8KiB],
+    l1i_size: [8KiB],
+    l2_size: [16KiB],
+    l3_size: [32KiB],       # size of each LLC
+    # working-set size
+    size-ws: [8192],
+    maxloads: [128]
+  },
+  # L2 hit read bandwidth
+  {
+    # cache size
+    l1d_size: [1KiB],
+    l1i_size: [1KiB],
+    l2_size: [8KiB],
+    l3_size: [16KiB],       # size of each LLC
+    # working-set size
+    size-ws: [8192],
+    maxloads: [128]
+  },
+  # L3 hit read bandwidth
+  {
+    # cache size
+    l1d_size: [1KiB],
+    l1i_size: [1KiB],
+    l2_size: [2KiB],
+    l3_size: [16KiB],       # size of each LLC
+    # working-set size
+    size-ws: [8192],
+    maxloads: [128]
+  },
+  # Memory read bandwidth
+  {
+    # cache size
+    l1d_size: [1KiB],
+    l1i_size: [1KiB],
+    l2_size: [2KiB],
+    l3_size: [16KiB],       # size of each LLC
+    # working-set size
+    size-ws: [1048576],
+    maxloads: [1]
+  },
+]

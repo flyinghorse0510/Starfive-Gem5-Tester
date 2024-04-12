@@ -13,6 +13,9 @@ _tab = "\t"
 def worker_process(config):
     args = config[0]
     configDict: dict = config[1]
+    # strip compose info
+    if "compose" in configDict:
+        del configDict["compose"]
     parameterSpaceList = config[2]
     output_dir = args.output_dir
     # construct output folder path
@@ -131,6 +134,7 @@ def worker_process(config):
     startTime = time.time()
     # stdOut, stdErr, retCode = util.exec_shell_cmd(gem5Cmd)
     stdOut, stdErr, retCode = util.exec_shell_cmd(gem5Cmd, False, False, True, True)
+    # stdOut, stdErr, retCode = util.exec_shell_cmd("echo test", False, False, True, True)
     endTime = time.time()
     duration = int(endTime - startTime)
 
@@ -143,39 +147,82 @@ def worker_manager(args, configDict):
         if os.fork() != 0:
             return
 
-    # explore parameter space
+    # explore parameter space in default domain
     exclusiveList: list = configDict["python-config-exclusive-pars"]
     parameterSpaceList = []
     configList = []
     for key in configDict:
         # in exclusive list, ignore
-        if key in exclusiveList:
+        if key in exclusiveList or key == "compose":
             continue
         # only one parameter, no need to explore
         if (configDict[key] is None) or len(configDict[key]) < 2:
             continue
         # add to parameter explore space
-        parameterSpaceList.append(key)
+        # assert(key not in parameterSpaceList)
+        if key not in parameterSpaceList:
+            parameterSpaceList.append(key)
+    # expand parameter space in compose domain
+    if util.check_key(configDict, "compose"):
+        for composeTask in configDict["compose"]:
+            for composeKey in composeTask:
+                if composeKey not in parameterSpaceList:
+                    parameterSpaceList.append(composeKey)
+    # check for parameter integrity
+    parIntegrityPass = True
+    if util.check_key(configDict, "compose"):
+        for parameter in parameterSpaceList:
+            for composeTask in configDict["compose"]:
+                if parameter not in composeTask and parameter not in configDict:
+                    parIntegrityPass = False
+                    print(f"[Fatal]: Parameter integrity check not passed ==> {parameter} not in {composeTask}")
+    if not parIntegrityPass:
+        raise ValueError(" Parameter integrity check not passed")
+    # exploring various parameter combinations in compose domain if it exists
+    if util.check_key(configDict, "compose"):
+        for composeTask in configDict["compose"]:
+            composeConfigDict = deepcopy(configDict)
+            for composeKey in composeTask:
+                composeConfigDict[composeKey] = composeTask[composeKey]
+            # dynamically generate code for exploring various parameter combinations
+            _code = ""
+            dimParameterSpace = len(parameterSpaceList)
+            _0_configDict = composeConfigDict
+            for i in range(dimParameterSpace):
+                parameterName: str = parameterSpaceList[i]
+                variableName = parameterName.replace("-", "_")
+                # generate loop wrapper code
+                _code += (
+                    f"{i * _tab}for {variableName} in _{i}_configDict['{parameterName}']:\n"
+                )
+                # generate parameters assignment code
+                _code += f"{(i+1) * _tab}_{i+1}_configDict=deepcopy(_{i}_configDict); _{i+1}_configDict['{parameterName}']=[{variableName}]\n"
 
-    # dynamically generate code for exploring various parameter combinations
-    _code = ""
-    dimParameterSpace = len(parameterSpaceList)
-    _0_configDict = configDict
-    for i in range(dimParameterSpace):
-        parameterName: str = parameterSpaceList[i]
-        variableName = parameterName.replace("-", "_")
-        # generate loop wrapper code
-        _code += (
-            f"{i * _tab}for {variableName} in _{i}_configDict['{parameterName}']:\n"
-        )
-        # generate parameters assignment code
-        _code += f"{(i+1) * _tab}_{i+1}_configDict=deepcopy(_{i}_configDict); _{i+1}_configDict['{parameterName}']=[{variableName}]\n"
+            # add all generated configs to the list
+            _code += f"{dimParameterSpace * _tab}configList.append((args, _{dimParameterSpace}_configDict, parameterSpaceList))\n"
 
-    # add all generated configs to the list
-    _code += f"{dimParameterSpace * _tab}configList.append((args, _{dimParameterSpace}_configDict, parameterSpaceList))\n"
+            # execute the generated code
+            exec(_code)
+    else:
+        # compose domain doesn't exist
+        _code = ""
+        dimParameterSpace = len(parameterSpaceList)
+        _0_configDict = configDict
+        for i in range(dimParameterSpace):
+            parameterName: str = parameterSpaceList[i]
+            variableName = parameterName.replace("-", "_")
+            # generate loop wrapper code
+            _code += (
+                f"{i * _tab}for {variableName} in _{i}_configDict['{parameterName}']:\n"
+            )
+            # generate parameters assignment code
+            _code += f"{(i+1) * _tab}_{i+1}_configDict=deepcopy(_{i}_configDict); _{i+1}_configDict['{parameterName}']=[{variableName}]\n"
 
-    # execute the generated code
-    exec(_code)
+        # add all generated configs to the list
+        _code += f"{dimParameterSpace * _tab}configList.append((args, _{dimParameterSpace}_configDict, parameterSpaceList))\n"
+
+        # execute the generated code
+        exec(_code)
 
     # hint users about tests to be runned
     if dimParameterSpace > 0:

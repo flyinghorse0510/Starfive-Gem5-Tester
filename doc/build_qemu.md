@@ -1,6 +1,6 @@
 # Build QEMU for Full-System Simulation (Briefly)
 
-> Last edited by Haoyuan Ma, `4:40 P.M. 2nd April GST+8`
+> Last edited by Haoyuan Ma, `4:40 P.M. 2nd April UTC+8`
 
 ## 1. Clone QEMU source code
 At the time of writing this document, I use the `stable-8.1` version of QEMU. In the future, I recommend that you always use the latest stable version of QEMU to start.
