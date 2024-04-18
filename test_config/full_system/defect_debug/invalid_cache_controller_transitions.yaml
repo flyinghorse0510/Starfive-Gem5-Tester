@@ -6,7 +6,7 @@
 # include other configuration files
 BUILDTYPE: "gem5.opt"
 fs_mode: "checkpoint"
-include: ["test_config/D2D_full_system/CHID2D_full_system_base.yaml"]
+include: ["test_config/full_system/CHID2D_full_system_base.yaml"]
 # cpu-type: ["O3CPU"]
 # cpu-type: ["NonCachingSimpleCPU"]
 cpu-type: ["TimingSimpleCPU"]

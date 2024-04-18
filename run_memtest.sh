@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # output directory
-outputDir="2D_MemTest_BW"
+outputDir="ref_bw_output_assoc"
 
 # 1-Die MemTest
-#memTestConfig=test_config/D2D_microbenchmark/automation_check/read_bw_1D.yaml
-#baseConfig=test_config/D2D_microbenchmark/CHI_base.yaml
+memTestConfig=test_config/microbenchmark/automation_test/read_bw_1D.yaml
+baseConfig=test_config/microbenchmark/CHI_base.yaml
 
 # 2-Die MemTest
-memTestConfig=test_config/D2D_microbenchmark/automation_test/read_bw_2D.yaml
-baseConfig=test_config/D2D_microbenchmark/CHID2D_base.yaml
+# memTestConfig=test_config/microbenchmark/automation_test/read_bw_2D.yaml
+# baseConfig=test_config/microbenchmark/CHID2D_base.yaml
 
 if [ "$1" == "run" ]
 then

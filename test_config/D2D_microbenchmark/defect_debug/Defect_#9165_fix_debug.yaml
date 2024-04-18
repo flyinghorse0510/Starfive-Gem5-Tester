@@ -1,2 +1,0 @@
-include: ["test_config/D2D_microbenchmark/read_bandwidth_latency_opt.yaml"]
-allow-infinite-SF-entries: [true]

@@ -5,7 +5,7 @@
 # *********************
 
 # include other configuration files, included contents will be overwritten by this file if both fileds occur
-include: ["test_config/D2D_microbenchmark/CHID2D_base.yaml"]
+include: ["test_config/microbenchmark/CHID2D_base.yaml"]
 
 analyzer: []
 BUILDTYPE: "gem5.opt"

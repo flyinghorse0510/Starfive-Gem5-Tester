@@ -1,0 +1,2 @@
+include: ["test_config/microbenchmark/read_bandwidth_latency_opt.yaml"]
+allow-infinite-SF-entries: [true]

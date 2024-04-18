@@ -168,9 +168,13 @@ summary:
     - {data: "AccPattern", head: "Access Pattern"}
     - {data: "numNormL3caches", head: "LLCs(per Die)"}
     - {data: "l1d_size", head: "L1d Size"}
+    - {data: "l1d_assoc", head: "L1d Assoc"}
     - {data: "l1i_size", head: "L1i Size"}
+    - {data: "l1i_assoc", head: "L1i Assoc"}
     - {data: "l2_size", head: "L2 Size"}
+    - {data: "l2_assoc", head: "L2 Assoc"}
     - {data: "l3_size", head: "L3 Size"}
+    - {data: "l3_assoc", head: "L3 Assoc"}
     # - {data: "simple-int-link-bw-factor", head: "Int BW Factor"}
     # - {data: "HASnoopFilter", head: "HASnoopFilter"}
     # - {data: "HNFSnoopFilter", head: "HNFSnoopFilter"}

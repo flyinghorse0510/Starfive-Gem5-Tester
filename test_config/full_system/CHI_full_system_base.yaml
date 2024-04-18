@@ -8,7 +8,7 @@ include: []
 
 ## 1. Build & Runtime Configuration
 ISA: "ARM"
-CCPROT: "CHID2D"
+CCPROT: "CHI"
 BUILDTYPE: "gem5.opt"
 BUILDENV:
   - NUMBER_BITS_PER_SET=128               # increase the maximum node Ruby can handle
@@ -16,8 +16,8 @@ WORKERS: 32                               # number of concurrent workers for bui
 
 
 ## 2. Topology Configuration
-num-dies: [2]                             # total dies
-num-dirs: [2]                             # total memory controllers
+num-dies: [1]                             # total dies
+num-dirs: [1]                             # total memory controllers
 num-cpus: [2]                             # total cpus
 mem-size: ["16GB"]                        # memory size
 topology: ["CustomMesh"]                  # topology
@@ -29,8 +29,9 @@ relative_path_list:                       # add repo root path as prefix to the 
   - disk-image
   - script
   - checkpoint-dir
-gem5_config: ["configs/example/fs_starlink_d2d.py"]                   # gem5 python config file(relative to repo root path)
-chi-config: ["configs/example/noc_config/Starlink2.0_4x4Mesh_D2D.py"] # chi python config file(relative to repo root path)
+  - bootloader
+gem5_config: ["configs/example/fs_starlink.py"]                   # gem5 python config file(relative to repo root path)
+chi-config: ["configs/example/noc_config/Starlink2.0_4x4Mesh.py"] # chi python config file(relative to repo root path)
 numa-str: [1die_1numa]    # NUMA configuration (address space distribution)
 
 ## 3. Network Configuration
