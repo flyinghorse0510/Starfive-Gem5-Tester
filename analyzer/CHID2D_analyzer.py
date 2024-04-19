@@ -41,6 +41,10 @@ def getNumGenCpus(runtimeConfig: dict) -> int :
         numGenCpus -= numNoGenDie * numCpuPerDie
     return numGenCpus
 
+def getNumGenCpusNUMA(runtimeConfig: dict) -> int :
+    numaNCPus   = check_and_fetch_key(runtimeConfig, "numa-n-cpu", 0)
+    return numaNCPus
+
 def getNumCpus(runtimeConfig: dict) -> int :
     numCpus = check_and_fetch_key(runtimeConfig, "num-cpus", 0)
     if (numCpus is not None)  :
@@ -59,7 +63,7 @@ def analyze_access_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir
     # if (maxOutstand is None) or (maxOutstand == 1):
     #     # return {}
 
-    numGenCpus = getNumGenCpus(runtimeConfig)
+    numGenCpus = getNumGenCpusNUMA(runtimeConfig)
 
     totalReadBandwidth = None
     totalWriteBandwidth = None
@@ -118,7 +122,7 @@ def analyze_copyback_traffic(runtimeConfig: dict, extractedPars: dict, targetDir
 
 def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict :
     numDirs    = check_and_fetch_key(runtimeConfig, "num-dirs", 0)
-    numGenCpus = getNumGenCpus(runtimeConfig)
+    numGenCpus = getNumGenCpusNUMA(runtimeConfig)
     snfTbeUtil = check_and_fetch_key(extractedPars,"snfTbeUtil",0)
     snfTbeUtilAvg = -1000000.0
     haTbeUtilAvg  = -1000000.0
@@ -160,6 +164,29 @@ def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) 
     if l3acc is not None :
         if l3acc > 0 :
             l3HitRate = float(l3hits/l3acc)
+    dramRdRowHits = check_and_fetch_key(extractedPars,"dramRdRowHits",0)
+    dramWrRowHits = check_and_fetch_key(extractedPars,"dramWrRowHits",0)
+    dramRdReqs = check_and_fetch_key(extractedPars,"dramRdReqs",0)
+    dramWrReqs = check_and_fetch_key(extractedPars,"dramWrReqs",0)
+    dramAvgAccLat = check_and_fetch_key(extractedPars,"dramAvgAccLat",0)
+    # dramRdRowHits = 0
+    # dramWrRowHits = 0
+    dramRowHitRate = -1
+    # print(f'{dramRdRowHits},{dramWrRowHits},{dramRdReqs},{dramWrReqs}')
+    if ((dramRdRowHits is not None) and
+        (dramWrRowHits is not None) and
+        (dramRdReqs is not None) and
+        (dramWrReqs is not None)) :
+        dramWrRowHits = float(dramWrRowHits)
+        dramRdRowHits = float(dramRdRowHits)
+        dramRdReqs    = float(dramRdReqs)
+        dramWrReqs    = float(dramWrReqs)
+        dramRowHitRate = 100*(dramWrRowHits+dramRdRowHits)/(dramRdReqs+dramWrReqs)
+    if dramAvgAccLat is not None :
+        dramAvgAccLat = float(dramAvgAccLat/numDirs)
+    else :
+        dramAvgAccLat = -1
+
     return {
         "L1D_Occupancy": l1dTbeUtilAvg,
         "L2RetryAcks": l2RetryAcksAvg,
@@ -168,7 +195,9 @@ def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) 
         "SNF_Occupancy": snfTbeUtilAvg,
         "L1D_HitRate": l1dHitRate,
         "L2_HitRate": l2HitRate,
-        "L3_HitRate": l3HitRate
+        "L3_HitRate": l3HitRate,
+        "dramRowHitRate": dramRowHitRate,
+        "dramAvgAccLat": dramAvgAccLat
     }
     
 def analyze_cpu_ipc(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
@@ -194,7 +223,7 @@ def analyze_access_latency(runtimeConfig: dict, extractedPars: dict, targetDir: 
     # if (maxOutstand is None) or (maxOutstand != 1):
         # return {}
 
-    numGenCpus = getNumGenCpus(runtimeConfig)
+    numGenCpus = getNumGenCpusNUMA(runtimeConfig)
 
     normReadLatency = None
     normWriteLatency = None
@@ -209,11 +238,11 @@ def analyze_access_latency(runtimeConfig: dict, extractedPars: dict, targetDir: 
     ):
         if totalNumReads != 0:
             normReadLatency = int(
-                float(totalLatency) / float(totalNumReads * ticksPerCycle / numGenCpus)
+                float(totalLatency) / float(totalNumReads * ticksPerCycle)
             )
         if totalNumWrites != 0:
             normWriteLatency = int(
-                float(totalLatency) / float(totalNumWrites * ticksPerCycle / numGenCpus)
+                float(totalLatency) / float(totalNumWrites * ticksPerCycle)
             )
 
     return {"readLatency": normReadLatency, "writeLatency": normWriteLatency, "numGenCpus": numGenCpus}
@@ -283,6 +312,14 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
         else:
             accessRegion = "Cross-Die"
 
+    numa_str = check_and_fetch_key(runtimeConfig,"numa-str",0)
+    numNumaModes = 1
+    if numa_str == 'syswide_1numa' :
+        numNumaModes = 1
+    elif numa_str == '1die_1numa' :
+        numNumaModes = numDies
+    elif numa_str == '1snf_1numa' :
+        numNumaModes = numDirs
     analyzedDict = {
         "AccPattern": accPattern,
         "numNormDirs": numNormDirs,
@@ -300,7 +337,8 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
         "simSeconds": simSeconds,
         "hostHours": hostHours,
         "aveLoadLatency": aveLoadLatency,
-        "aveStoreLatency": aveStoreLatency
+        "aveStoreLatency": aveStoreLatency,
+        "numNumaModes": numNumaModes
     }
     if fsScript is not None:
         analyzedDict["fsScript"] = os.path.splitext(os.path.basename(fsScript))[0]
@@ -357,10 +395,11 @@ def analyze_trace_request_latency(runtimeConfig: dict, extractedPars: dict, targ
                 'Latency': reqLatency
             })
 
-    dfX = pd.DataFrame.from_records(latRecords)
-    dfX.sort_values(by='Start',ascending=True,inplace=True)
-    analyzeFile = os.path.join(targetDir, f"request_latency_cpu{reqCpu}.csv")
-    dfX.to_csv(analyzeFile, index=False)
+    if len(latRecords) > 0 :
+        dfX = pd.DataFrame.from_records(latRecords)
+        dfX.sort_values(by='Start',ascending=True,inplace=True)
+        analyzeFile = os.path.join(targetDir, f"request_latency_cpu{reqCpu}.csv")
+        dfX.to_csv(analyzeFile, index=False)
     return {}
 
 
