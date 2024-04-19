@@ -155,6 +155,51 @@ class Traversal(object):
     addr: str
     agent_list: Dict[int, List[AgentMsgTraversal]] # The first index is vnetId
 
+    def getCanonicalRdMsgChainNoSnp(self):
+        """
+            The canonical path traces
+            {
+                'IssueTime' : Cyc
+                'L1-->L2'   : Lat
+                'L2-->HNF'  : Lat
+                'HnfId'     : Lat
+                'HNF-->HA'  : Lat
+                'HA-->SNF'  : Lat
+                'SNF'       : Lat
+                'SNF-->HA'  : Lat
+                'HA-->HNF'  : Lat
+                'HNF-->L2'  : Lat
+                'L2-->Req'  : Lat
+            }
+        """
+        ret = {
+            'IssueTime' : self.agent_list[0][0].deq_time
+        }
+        pass
+
+    def combineVnetMsgs(self) -> List[AgentMsgTraversal] :
+        x: List[AgentMsgTraversal] = []
+        for vnetId, trvsls in self.agent_list :
+            x.extend(trvsls)
+        return sorted(x)  
+
+    def dump(self,f2,printHeader):
+        combinedAgentTraversals = []
+        for _,agt in self.agent_list.items() :
+            combinedAgentTraversals.extend(agt)
+        sortedAgentTaversals = sorted(combinedAgentTraversals)
+        if printHeader :
+            print('txn,addr,deqcyc,agent,opcode',file=f2)
+        for arr in sortedAgentTaversals :
+            txn = arr.txn
+            addr = arr.addr
+            deqcyc = arr.deq_time
+            agent = arr.agent_name
+            opcode = arr.opcode
+            print(f'{txn},{addr},{deqcyc},{agent},{opcode}',file=f2)
+            if opcode == "NA":
+                statisticDict[int(addr, 16)] = (f"{addr}", f"{deqcyc}")
+
 def translateAgentName(agent):
     nocAgentMtch1 = nocAgentPat1.search(agent)
     nocAgentMtch2 = nocAgentPat2.search(agent)
@@ -274,6 +319,19 @@ def getAllStatsDir(root_dir):
     output_dirs = find_output_dirs(root_dir)
     return output_dirs
 
+def dumpMessages(root_dir, allTxns):
+    dumpDir = os.path.join(root_dir,'LatencyBreakdownDump')
+    os.system(f'mkdir -p {dumpDir}')
+    fl = os.path.join(dumpDir,f'dumpAll.csv')
+    print(f'Writing to {fl}')
+    printHeader = True
+    with open(fl,'w') as f2 :
+        for k,v in allTxns.items():
+            v.dump(f2,printHeader)
+            if printHeader :
+                printHeader = False
+    return fl
+
 def analyze_trace_request_latency2(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict :
     output_dirs = getAllStatsDir(targetDir)
     for i in range(len(output_dirs)):
@@ -297,6 +355,20 @@ def analyze_trace_request_latency2(runtimeConfig: dict, extractedPars: dict, tar
             print(f'Writing to {dumpFileName}')
     return {}
 
+def analyze_trace_request_latency3(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict :
+    # INCOMPLETE/ABANDONED
+    output_dirs = getAllStatsDir(targetDir)
+    for i in range(len(output_dirs)):
+        dumpFileName = os.path.join(output_dirs[i],'breakdownLatencyNew.csv')
+        with open(dumpFileName,'w') as f2 :
+            trcFile  = os.path.join(output_dirs[i],'debug.trace')
+            allTxns  = genMessageLists(trcFile)
+            # print(f'TxnId,Addr,ReqtorId,L1-->L2,L2-->HNF,HNFId,HNF-->HA,HA-->SNF,SNF,SNF-->HA,HA-->HNF,HNF-->L2')
+            for txns,trvsl in allTxns.items() :
+                msgCanonicalChain = trvsl.getCanonicalRdMsgChainNoSnp()
+
+
+
 def main(runtimeConfig: dict, extractedPars: dict, targetDir: str):
     global addrList
     global statisticDict
@@ -305,5 +377,6 @@ def main(runtimeConfig: dict, extractedPars: dict, targetDir: str):
     for i in range(len(output_dirs)):
         trcFile  = os.path.join(output_dirs[i],'debug.trace')
         allTxns  = genMessageLists(trcFile)
+        dumpFile = dumpMessages(output_dirs[i], allTxns)
     
     return {}
