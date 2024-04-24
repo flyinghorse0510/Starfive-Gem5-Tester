@@ -366,6 +366,8 @@ def analyze_trace_request_latency3(runtimeConfig: dict, extractedPars: dict, tar
             # print(f'TxnId,Addr,ReqtorId,L1-->L2,L2-->HNF,HNFId,HNF-->HA,HA-->SNF,SNF,SNF-->HA,HA-->HNF,HNF-->L2')
             for txns,trvsl in allTxns.items() :
                 msgCanonicalChain = trvsl.getCanonicalRdMsgChainNoSnp()
+                
+    return {}
 
 
 

@@ -1,11 +1,11 @@
 include: ["analyze_config/CHID2D_stats_analyzer.yaml"]
 WORKERS: 32
-# preprocess:
-#   "preprocess_latency_breakdown": {file: "analyzer/CHID2D_GenLatencyBreakdown", func: ["main"]}
+preprocess:
+  "preprocess_latency_breakdown": {file: "analyzer/CHID2D_GenLatencyBreakdown", func: ["main"]}
 # callback:
 #   "analyze_trace_txn_breakdown_latency2": {file: "analyzer/CHID2D_GenLatencyBreakdown", func: ["analyze_trace_request_latency2"]}
 callback:
-  "analyze_trace_txn_breakdown_latency3": {file: "analyzer/CHID2D_GenLatencyBreakdown", func: ["analyze_trace_request_latency3"]}
+  "analyze_trace_txn_breakdown_latency3": {file: "analyzer/CHID2D_GenLatencyBreakdown", func: ["analyze_trace_request_latency2"]}
 
 target:
   "LatencyBreakdownDump/dumpAll.csv":

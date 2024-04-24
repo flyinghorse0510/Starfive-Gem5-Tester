@@ -64,6 +64,7 @@ def analyze_access_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir
     #     # return {}
 
     numGenCpus = getNumGenCpusNUMA(runtimeConfig)
+    numGenCpus = getNumCpus(runtimeConfig) if numGenCpus is None else numGenCpus
 
     totalReadBandwidth = None
     totalWriteBandwidth = None
@@ -123,6 +124,7 @@ def analyze_copyback_traffic(runtimeConfig: dict, extractedPars: dict, targetDir
 def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict :
     numDirs    = check_and_fetch_key(runtimeConfig, "num-dirs", 0)
     numGenCpus = getNumGenCpusNUMA(runtimeConfig)
+    numGenCpus = getNumCpus(runtimeConfig) if numGenCpus is None else numGenCpus
     snfTbeUtil = check_and_fetch_key(extractedPars,"snfTbeUtil",0)
     snfTbeUtilAvg = -1000000.0
     haTbeUtilAvg  = -1000000.0
@@ -224,6 +226,7 @@ def analyze_access_latency(runtimeConfig: dict, extractedPars: dict, targetDir: 
         # return {}
 
     numGenCpus = getNumGenCpusNUMA(runtimeConfig)
+    numGenCpus = getNumCpus(runtimeConfig) if numGenCpus is None else numGenCpus
 
     normReadLatency = None
     normWriteLatency = None

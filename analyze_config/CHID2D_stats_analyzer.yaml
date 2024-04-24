@@ -219,9 +219,12 @@ summary:
     # - {data: "HNFSnoopFilter", head: "HNFSnoopFilter"}
     # - {data: "genEvictOnReplHnf", head: "HNF to HA Eviction Type"}
     # - {data: "ha-snoopfilter-cov-factor", head: "HA SnoopFilter coverage factor"}
-    # - {data: "num-RNF-TBE", head: "L2 TBEs"}
-    # - {data: "num-HA-TBE", head: "HA TBEs"}
-    # - {data: "num-SNF-TBE", head: "SNF TBEs"}
+    - {data: "num-RNF-TBE", head: "L2 TBEs"}
+    - {data: "num-HA-TBE", head: "HA TBEs"}
+    - {data: "num-SNF-TBE", head: "SNF TBEs"}
+    - {data: "int-link-latency", head: "Int-Link Latency"}
+    - {data: "ext-link-latency", head: "Ext-Link Latency"}
+    - {data: "router-latency", head: "Router Latency"}
     # - {data: "L1D_Occupancy", head: "L1D Utilization Avg"}
     # - {data: "RNF_Occupancy", head: "RNF Utilization Avg"}
     # - {data: "L2RetryAcks", head: "L2_L1RetryAcks"}
@@ -239,8 +242,8 @@ summary:
     - {data: "totalReadBandWidth", head: "Total Bandwidth(GBps)"}
     - {data: "normReadBandwidth", head: "Average Bandwidth(GBps)"}
     - {data: "readLatency", head: "Read Latency(Cycles)"}
-    # - {data: "num_txremap_entries", head: "Num Tx Remap"}
-    # - {data: "num_rxremap_entries", head: "Num Rx Remap"}
+    - {data: "num_txremap_entries", head: "Num Tx Remap"}
+    - {data: "num_rxremap_entries", head: "Num Rx Remap"}
     # - {data: "d2d_traversal_latency", head: "D2D Link Latency(Cycle)"}
     - {data: "L1D_HitRate", head: "L1D_HitRate"}
     - {data: "L2_HitRate", head: "L2_HitRate"}
