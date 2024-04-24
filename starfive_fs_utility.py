@@ -93,7 +93,7 @@ def get_qemu_src(repo: str = "https://github.com/flyinghorse0510/qemu.git", bran
 def build_install_qemu(srcPath: str = "img/qemu"):
     raise NotImplementedError
 
-def start_qemu_system_emulation(kernelPath: str, diskPath: str, numCpu: int, numMem: int, arch: str = "aarch64", extraPars: dict = {}, copyDisk: bool = True, newDiskName: str = None, qemuPath: str = None, systemEmulation = True, machine: str = "virt", cpuFeature: str = "max"):
+def start_qemu_system_emulation(kernelPath: str, diskPath: str, numCpu: int, numMem: int, arch: str = "aarch64", extraPars: dict = {}, copyDisk: bool = True, newDiskName: str = None, qemuPath: str = None, systemEmulation = True, machine: str = "virt", cpuFeature: str = "neoverse-n1"):
     user = util.get_current_user()
     repoRoot = util.get_repo_root()
     scriptRoot = util.get_script_root()
@@ -131,6 +131,8 @@ def start_qemu_system_emulation(kernelPath: str, diskPath: str, numCpu: int, num
     print(f"Running Linux kernel ==> {kernelPath}")
     
     qemuCmdLine = f"{envVar} {qemuBinPath}"
+    # specify accelerator
+    qemuCmdLine += f" -accel tcg"
     # specify machine
     qemuCmdLine += f" -machine {machine}"
     # specify cpu features and cpu
@@ -142,7 +144,7 @@ def start_qemu_system_emulation(kernelPath: str, diskPath: str, numCpu: int, num
     # specify kernel
     qemuCmdLine += f" -kernel {kernelPath}"
     # kernel parameters
-    qemuCmdLine += f" -append \"root=/dev/vda rw console=ttyAMA0\""
+    qemuCmdLine += f" -append \"root=/dev/vda1 rw console=ttyAMA0\""
     # specify network and port forwarding
     qemuCmdLine += f" -netdev user,id=usernet,hostfwd=tcp::6666-:22 -device virtio-net-device,netdev=usernet"
     # extra parameters
@@ -162,4 +164,6 @@ if __name__ == "__main__":
     scriptRoot = util.get_script_root()
     kernelPath = os.path.join(scriptRoot, "img/kernel_bootloader/binaries/Image.arm64.v4.15.starfive_numa")
     diskPath = os.path.join(scriptRoot, "img/disk_img/expanded-ubuntu-18.04-arm64-docker.img")
-    start_qemu_system_emulation(kernelPath=kernelPath, diskPath=diskPath, numCpu=2, numMem=16*1024, newDiskName="qemu-gem5-ubuntu-18.04-arm64.img", copyDisk=False)
+    kernelPath = "/home/lowell/linux_kernel/gem5_arm64_linux/arch/arm64/boot/Image"
+    diskPath = "/home/lowell/images/qemu-gem5-ubuntu-18.04-arm64-base.img"
+    start_qemu_system_emulation(kernelPath=kernelPath, diskPath=diskPath, numCpu=2, numMem=16*1024, copyDisk=False)
