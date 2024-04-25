@@ -21,13 +21,12 @@ extra_flags:
   - simple-physical-channels
   - disable-gclk-set
   - param 'system.realview.gic.gem5_extensions = True'    # full-system simulation required
-  - root="/dev/sda"
   # - ruby
   # - wait-gdb
 
 num-dirs: [1]                             # total memory controllers
 num-cpus: [2]                             # total cpus
 
-disk-image: ["/home/share/temp_0409_imgs/rootfs.ext2"]
-kernel: ["/home/share/temp_0409_imgs/vmlinux"]
-bootloader: ["/home/haoyuan.ma/code/Starlink2.0_D2D_v1/system/arm/bootloader/arm64/boot_emm.arm64"]
+# disk-image: ["/home/share/temp_0409_imgs/rootfs.ext2"]
+# kernel: ["/home/haoyuan.ma/code/Starlink2.0_D2D_v1/starfive_gem5_tester/img/kernel_bootloader/binaries/vmlinux.arm64.v5.15.153.starfive"]
+# bootloader: ["/home/haoyuan.ma/code/Starlink2.0_D2D_v1/system/arm/bootloader/arm64/boot_emm.arm64"]

@@ -1,6 +1,6 @@
 # Modify Gem5 Full-System Simulation Image
 
-> Last edited by Haoyuan Ma, `11:21 P.M. 7th April UTC+8`
+> Last edited by Haoyuan Ma, `03:53 P.M. 25th April UTC+8`
 
 ## 1. Introduction to Raw Disk Image
 > If you know very well about the disk format/image, you should skip this section.
@@ -29,6 +29,21 @@ In `Gem5`, we use exactly this kind of disk image in full-system simulation. Bes
 2. use `QEMU`
 
 
+### 2.1 Using `docker`/`podman`
+I have made several docker images containing officially released filesystem for `arm64`(`aarch64`): [flyinghorse0510/qemu-gem5-ubuntu](https://hub.docker.com/repository/docker/flyinghorse0510/qemu-gem5-ubuntu/general)
+
+To pull it, just use the following command (assume you are using docker):
+```bash
+docker pull flyinghorse0510/qemu-gem5-ubuntu
+```
+You can use it as a starting point and do arbitrary modifications. You need to create a blank raw disk image and export contents of the container's filesystem to it once you finish editing and want to run it under gem5/qemu. (Search using Google to see how to do this)
+
+For `PARSEC3`, I have also created a corresponding docker image to use: [flyinghorse0510/qemu-gem5-ubuntu-legacy-parsec](https://hub.docker.com/repository/docker/flyinghorse0510/qemu-gem5-ubuntu-legacy-parsec/general)
+
+**Note**: All these docker images are `arm64`(`aarch64`) architectures. You may either configure `binfmt_misc` properly with `QEMU-static` or run it on native `arm64`(`aarch64`) machine.
+
+
+### 2.2 Using `guestfish`
 #### 2.2.1 Prepare `guestfish`
 First, ensure that `guestfish` is installed on your system. It is part of the `libguestfs` toolset.
 on Ubuntu or Debian-based systems, you would use the following command to install it:
@@ -40,7 +55,7 @@ sudo apt update && sudo apt install libguestfs-tools
 Assume that you have a raw disk image file called `disk.img` under the current working directory, you can use the following command to mount and inspect it:
 ```bash
 # '--ro' is recommended to avoid any writes to the disk image.
-guestfish --ro -a -i disk.img
+guestfish --ro -a disk.img -i
 # replace '--ro' with '--rw' to mount the disk with read-write permission if necessary.
 ```
 You should always mount with read-only permission unless you are determined to modify the disk image directly using `guestfish`.
@@ -61,7 +76,7 @@ tar-out / disk.tar.gz compress:gzip
 
 Besides, **if you prefer a non-interactive way to complete the procedures mentioned above in one-click**, try the following line:
 ```bash
-guestfish --ro -a -i disk.img -- tar-out / disk.tar.gz compress:gzip
+guestfish --ro -a disk.img -i -- tar-out / disk.tar.gz compress:gzip
 ```
 #### 2.2.4 Archive All Contents within the Image and Save them out
 > This step is only necessary when using `docker` (or other alternatives)
