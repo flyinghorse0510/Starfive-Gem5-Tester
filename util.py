@@ -68,6 +68,9 @@ def get_script_root() -> str:
     filePath = os.path.dirname(__file__)
     return filePath
 
+def get_script_name() -> str:
+    fileName = os.path.basename(__file__)
+    return fileName
 
 # recursively load yaml configs with `include` field
 def recursive_load_yaml(file: str) -> dict:
