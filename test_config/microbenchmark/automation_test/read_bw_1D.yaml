@@ -27,6 +27,7 @@ outstanding-req: [10000]      # unlimited CPU side outstanding request
 # Topology
 num-dies: [1] 
 num-cpus: [8, 4, 2, 1]
+int-link-latency: [4, 3, 2, 1]
 num-dirs: [1]
 
 # total size of accessed memory = size-ws * maxloads

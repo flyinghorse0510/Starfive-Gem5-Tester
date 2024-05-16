@@ -242,6 +242,7 @@ summary:
     - {data: "num-SNF-TBE", head: "SNF TBEs"}
     - {data: "int-link-latency", head: "Int-Link Latency"}
     - {data: "ext-link-latency", head: "Ext-Link Latency"}
+    - {data: "d2d_traversal_latency", head: "D2D Traversal Latency"}
     - {data: "router-latency", head: "Router Latency"}
     # - {data: "L1D_Occupancy", head: "L1D Utilization Avg"}
     # - {data: "RNF_Occupancy", head: "RNF Utilization Avg"}
@@ -255,7 +256,7 @@ summary:
     # - {data: "num_DDR_side", head: "DDR locations"}
     - {data: "workset", head: "Working Set"}
     # - {data: "TransmitRetryD2D", head: "Transmit or Absorb retry"}
-    # - {data: "accessRegion", head: "Region"}
+    - {data: "accessRegion", head: "Region"}
     - {data: "maxloads", head: "Load Factor"}
     # - {data: "percentCopyBackTraffic", head: "Percent of copyback (e.g. WriteEvicts) traffic to HA"}
     - {data: "totalCpuReadBandWidth", head: "CPU Total Bandwidth(GBps)"}

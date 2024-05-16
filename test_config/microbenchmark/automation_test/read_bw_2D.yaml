@@ -20,7 +20,8 @@ num-l3caches: [32]            # total number of l3-caches in the system
 
 # TBE settings
 num-HNF-TBE: [32]
-num-RNF-TBE: [32, 48, 64, 80]
+# num-RNF-TBE: [32, 48, 64, 80]
+num-RNF-TBE: [80]
 num-SNF-TBE: [32]
 num-HA-TBE: [32]
 ha-SF-TBE: [32]
@@ -28,7 +29,9 @@ outstanding-req: [10000]      # unlimited CPU side outstanding request
 
 # Topology
 num-dies: [2] 
-num-cpus: [16, 8, 4, 2]
+num-cpus: [32, 16, 8, 4, 2]
+int-link-latency: [4, 3, 2, 1]
+d2d_traversal_latency: [2, 5, 11, 23]
 num-dirs: [2]
 numa-str: [1die_1numa]
 
