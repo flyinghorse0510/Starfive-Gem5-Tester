@@ -132,14 +132,14 @@ target:
       reduce: "+="
     
     hnfTbeUtil:
-      pattern: 'system.ruby.hnfs(\d*).cntrl.avg_util( +)([\.\d]+)( +)# TBE Request Utilization \(Unspecified\)'
-      location: [3]
+      pattern: 'system.ruby.hnf(s?)(\d*).cntrl.avg_util( +)([\.\d]+)( +)# TBE Request Utilization \(Unspecified\)'
+      location: [4]
       type: [float]
       reduce: "+="
     
     snfTbeUtil:
-      pattern: 'system.ruby.snfs(\d*).cntrl.avg_util( +)([\.\d]+)( +)# TBE Request Utilization \(Unspecified\)'
-      location: [3]
+      pattern: 'system.ruby.snf(s?)(\d*).cntrl.avg_util( +)([\.\d]+)( +)# TBE Request Utilization \(Unspecified\)'
+      location: [4]
       type: [float]
       reduce: "+="
     
@@ -228,6 +228,7 @@ summary:
     # - {data: "L1D_Occupancy", head: "L1D Utilization Avg"}
     # - {data: "RNF_Occupancy", head: "RNF Utilization Avg"}
     # - {data: "L2RetryAcks", head: "L2_L1RetryAcks"}
+    - {data: "HNF_Occupancy", head: "HNF Utilization Avg"}
     - {data: "HA_Occupancy", head: "HA Utilization Avg"}
     - {data: "SNF_Occupancy", head: "SNF Utilization Avg"}
     - {data: "simple-ext-link-bw-factor", head: "ext link bw"}

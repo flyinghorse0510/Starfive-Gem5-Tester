@@ -123,6 +123,7 @@ def analyze_copyback_traffic(runtimeConfig: dict, extractedPars: dict, targetDir
 
 def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict :
     numDirs    = check_and_fetch_key(runtimeConfig, "num-dirs", 0)
+    numHnfs    = check_and_fetch_key(runtimeConfig, "num-l3caches", 0)
     numGenCpus = getNumGenCpusNUMA(runtimeConfig)
     numGenCpus = getNumCpus(runtimeConfig) if numGenCpus is None else numGenCpus
     snfTbeUtil = check_and_fetch_key(extractedPars,"snfTbeUtil",0)
@@ -130,6 +131,10 @@ def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) 
     haTbeUtilAvg  = -1000000.0
     rnfTbeUtilAvg = -1000000.0
     l1dTbeUtilAvg = -1000000.0
+    hnfTbeUtil = check_and_fetch_key(extractedPars,"hnfTbeUtil",0)
+    if hnfTbeUtil is not None :
+        hnfTbeUtil = float(hnfTbeUtil)
+        hnfTbeUtilAvg = hnfTbeUtil/numHnfs
     if snfTbeUtil is not None :
         snfTbeUtil = float(snfTbeUtil)
         snfTbeUtilAvg = snfTbeUtil/numDirs
@@ -193,6 +198,7 @@ def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) 
         "L1D_Occupancy": l1dTbeUtilAvg,
         "L2RetryAcks": l2RetryAcksAvg,
         "RNF_Occupancy": rnfTbeUtilAvg,
+        "HNF_Occupancy": hnfTbeUtilAvg,
         "HA_Occupancy": haTbeUtilAvg,
         "SNF_Occupancy": snfTbeUtilAvg,
         "L1D_HitRate": l1dHitRate,
