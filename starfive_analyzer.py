@@ -164,8 +164,9 @@ def worker_manager(args, analyzeConfigDict: dict, targetDirList: list):
             (
                 targetDir,
                 {
-                    "runtimeConfig": util.recursive_load_yaml(
-                        os.path.join(targetDir, "cmd_config.yaml")
+                    "runtimeConfig": util.recursive_load_yamls(
+                        os.path.join(targetDir, "cmd_config.yaml"),
+                        os.path.join(targetDir, "cmd_config_gen.yaml")
                     ),
                     "extractedPars": {},
                 },

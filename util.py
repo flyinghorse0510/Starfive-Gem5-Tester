@@ -2,6 +2,7 @@ import subprocess, os, sys
 import yaml
 import logging
 from datetime import datetime
+from typing import List
 from pydantic.v1.utils import deep_update
 
 
@@ -84,7 +85,7 @@ def recursive_load_yaml(file: str) -> dict:
         yamlFile.close()
         yamlConfigDataList.append(yamlConfig)
         # append included yaml file path to list for further load
-        if (yamlConfig["include"] is not None) and len(yamlConfig["include"]) > 0:
+        if (yamlConfig.get("include",None) is not None) and len(yamlConfig["include"]) > 0:
             # recursively load yaml config
             for includedYamlFile in yamlConfig["include"]:
                 # make the path relative to the script
@@ -114,6 +115,21 @@ def recursive_load_yaml(file: str) -> dict:
 
     return base_yaml
 
+# Invoke multiple yaml files
+def recursive_load_yamls(*args) -> dict :
+    """
+        This is wrapper around
+        recursive_load_yaml, that flattens
+        the base_yaml file. The rationale
+        is to add generated parameters to the
+        base_yaml
+    """
+    base_yaml = dict()
+    for arg in args : 
+        assert(isinstance(arg,str))
+        assert(os.path.isfile(arg))
+        base_yaml.update(recursive_load_yaml(arg))
+    return base_yaml
 
 # dump yaml configs to specific file
 def dump_config(path: str, configDict: dict):

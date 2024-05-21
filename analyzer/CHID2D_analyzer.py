@@ -1,6 +1,7 @@
 import os
+import sys
 import logging
-import statistics
+import pprint as pp
 import pandas as pd
 
 # check if the key exists in dictionary, if not, then return False;
@@ -28,7 +29,6 @@ def check_and_fetch_key(parsDict: dict, key: str, index = None): # type: ignore
             return parsDict[key]
     return None
 
-
 def getNumGenCpus(runtimeConfig: dict) -> int :
     noGen   = check_and_fetch_key(runtimeConfig, "no-gen-die", 0)
     numCpus = check_and_fetch_key(runtimeConfig, "num-cpus", 0)
@@ -41,62 +41,98 @@ def getNumGenCpus(runtimeConfig: dict) -> int :
         numGenCpus -= numNoGenDie * numCpuPerDie
     return numGenCpus
 
-def getNumGenCpusNUMA(runtimeConfig: dict) -> int :
-    numaNCPus   = check_and_fetch_key(runtimeConfig, "numa-n-cpu", 0)
-    return numaNCPus
-
 def getNumCpus(runtimeConfig: dict) -> int :
-    numCpus = check_and_fetch_key(runtimeConfig, "num-cpus", 0)
-    if (numCpus is not None)  :
-        return int(numCpus)
-    else :
-        return -1
+    effective_cpu_list = check_and_fetch_key(runtimeConfig, "effective_cpu_list")
+    numCpus = -1
+    if (effective_cpu_list is not None)  :
+        numCpus = len([c for c in effective_cpu_list if c >= 0])
+    return numCpus
+    
+def getNumGenDmas(runtimeConfig: dict) -> int :
+    effective_dma_list = check_and_fetch_key(runtimeConfig, "effective_dma_list")
+    numDmas = -1
+    if (effective_dma_list is not None)  :
+        numDmas = len([d for d in effective_dma_list if d >= 0])
+    print(f'numDmas: {numDmas}')
+    return numDmas
     
 def analyze_access_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
-    totalNumReads = check_and_fetch_key(extractedPars, "totalNumReads", 0)
-    totalNumWrites = check_and_fetch_key(extractedPars, "totalNumWrites", 0)
-    simTicks = check_and_fetch_key(extractedPars, "simTicks", 0)
-    simFreq = check_and_fetch_key(extractedPars, "simFreq", 0)
+    # Compute the total ticks and cycles
+    simTicks      = check_and_fetch_key(extractedPars, "simTicks", 0)
     ticksPerCycle = check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
-    maxOutstand = check_and_fetch_key(runtimeConfig, "outstanding-req", 0)
+    simFreq       = check_and_fetch_key(extractedPars, "simFreq", 0)
 
-    # if (maxOutstand is None) or (maxOutstand == 1):
-    #     # return {}
+    # CPU Rd/Wr latency
+    totalCpuNumReads       = check_and_fetch_key(extractedPars, "totalCpuNumReads", 0)
+    totalCpuNumWrites      = check_and_fetch_key(extractedPars, "totalCpuNumWrites", 0)
+    numGenCpus             = getNumCpus(runtimeConfig)
+    totalCpuReadBandwidth  = None
+    totalCpuWriteBandwidth = None
+    normCpuReadBandwidth   = None
+    normCpuWriteBandwidth  = None
 
-    numGenCpus = getNumGenCpusNUMA(runtimeConfig)
-    numGenCpus = getNumCpus(runtimeConfig) if numGenCpus is None else numGenCpus
-
-    totalReadBandwidth = None
-    totalWriteBandwidth = None
-    normReadBandwidth = None
-    normWriteBandwidth = None
     if (
         ((numGenCpus is not None) and (numGenCpus > 0))
-        and ((totalNumReads is not None) and (totalNumReads >= 0))
-        and ((totalNumWrites is not None) and (totalNumWrites >= 0))
+        and ((totalCpuNumReads is not None) and (totalCpuNumReads >= 0))
+        and ((totalCpuNumWrites is not None) and (totalCpuNumWrites >= 0))
         and ((simFreq is not None) and (simFreq > 0))
         and ((ticksPerCycle is not None) and (ticksPerCycle > 0))
     ):
-        totalReadBandwidth = (
-            float(totalNumReads)
+        totalCpuReadBandwidth = (
+            float(totalCpuNumReads)
             * 64
             / (float(simTicks) / float(simFreq) * 1000 * 1000 * 1000)
         )
-        normReadBandwidth = totalReadBandwidth / numGenCpus
+        normCpuReadBandwidth = totalCpuReadBandwidth / numGenCpus
         
-        totalWriteBandwidth = (
-            float(totalNumWrites)
+        totalCpuWriteBandwidth = (
+            float(totalCpuNumWrites)
             * 64
             / (float(simTicks) / float(simFreq) * 1000 * 1000 * 1000)
         )
-        normWriteBandwidth = totalWriteBandwidth / numGenCpus
+        normCpuWriteBandwidth = totalCpuWriteBandwidth / numGenCpus
+
+    # Repeat the above for DMA devices
+    totalDmaNumReads       = check_and_fetch_key(extractedPars, "totalDmaNumReads", 0)
+    totalDmaNumWrites      = check_and_fetch_key(extractedPars, "totalDmaNumWrites", 0)
+    numGenDmas             = getNumGenDmas(runtimeConfig)
+    totalDmaReadBandwidth  = None
+    totalDmaWriteBandwidth = None
+    normDmaReadBandwidth   = None
+    normDmaWriteBandwidth  = None
+
+    if (
+        ((numGenDmas is not None) and (numGenDmas > 0))
+        and ((totalDmaNumReads is not None) and (totalDmaNumReads >= 0))
+        and ((totalDmaNumWrites is not None) and (totalDmaNumWrites >= 0))
+        and ((simFreq is not None) and (simFreq > 0))
+        and ((ticksPerCycle is not None) and (ticksPerCycle > 0))
+    ):
+        totalDmaReadBandwidth = (
+            float(totalDmaNumReads)
+            * 64
+            / (float(simTicks) / float(simFreq) * 1000 * 1000 * 1000)
+        )
+        normDmaReadBandwidth = totalDmaReadBandwidth / numGenDmas
+        
+        totalDmaWriteBandwidth = (
+            float(totalDmaNumWrites)
+            * 64
+            / (float(simTicks) / float(simFreq) * 1000 * 1000 * 1000)
+        )
+        normDmaWriteBandwidth = totalDmaWriteBandwidth / numGenDmas
 
     return {
-        "totalReadBandWidth": totalReadBandwidth,
-        "totalWriteBandwidth": totalWriteBandwidth,
-        "normReadBandwidth": normReadBandwidth,
-        "normWriteBandwidth": normWriteBandwidth,
-        "numGenCpus": numGenCpus
+        "totalCpuReadBandWidth": totalCpuReadBandwidth,
+        "totalCpuWriteBandwidth": totalCpuWriteBandwidth,
+        "normCpuReadBandwidth": normCpuReadBandwidth,
+        "normCpuWriteBandwidth": normCpuWriteBandwidth,
+        "numGenCpus": numGenCpus,
+        "totalDmaReadBandWidth"  : totalDmaReadBandwidth,
+        "totalDmaWriteBandwidth" : totalDmaWriteBandwidth,
+        "normDmaReadBandwidth"   : normDmaReadBandwidth,
+        "normDmaWriteBandwidth"  : normDmaWriteBandwidth,
+        "numGenDmas"             : numGenDmas
     }
 
 # for back-ward compatible
@@ -124,8 +160,7 @@ def analyze_copyback_traffic(runtimeConfig: dict, extractedPars: dict, targetDir
 def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict :
     numDirs    = check_and_fetch_key(runtimeConfig, "num-dirs", 0)
     numHnfs    = check_and_fetch_key(runtimeConfig, "num-l3caches", 0)
-    numGenCpus = getNumGenCpusNUMA(runtimeConfig)
-    numGenCpus = getNumCpus(runtimeConfig) if numGenCpus is None else numGenCpus
+    numGenCpus = getNumCpus(runtimeConfig)
     snfTbeUtil = check_and_fetch_key(extractedPars,"snfTbeUtil",0)
     snfTbeUtilAvg = -1000000.0
     haTbeUtilAvg  = -1000000.0
@@ -221,40 +256,65 @@ def getHASnoopFilterMissRate(runtimeConfig: dict, extractedPars: dict, targetDir
     pass
 
 def analyze_access_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
-    totalNumReads = check_and_fetch_key(extractedPars, "totalNumReads", 0)
-    totalNumWrites = check_and_fetch_key(extractedPars, "totalNumWrites", 0)
-    totalLatency = check_and_fetch_key(extractedPars, "totalLatency", 0)
-    simTicks = check_and_fetch_key(extractedPars, "simTicks", 0)
-    ticksPerCycle = check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
-    maxOutstand = check_and_fetch_key(runtimeConfig, "outstanding-req", 0)
+    # Compute the total ticks and cycles
+    simTicks          = check_and_fetch_key(extractedPars, "simTicks", 0)
+    ticksPerCycle     = check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
 
-    # if (maxOutstand is None) or (maxOutstand != 1):
-        # return {}
-
-    numGenCpus = getNumGenCpusNUMA(runtimeConfig)
-    numGenCpus = getNumCpus(runtimeConfig) if numGenCpus is None else numGenCpus
-
-    normReadLatency = None
-    normWriteLatency = None
+    # CPU Rd/Wr latency
+    totalCpuNumReads    = check_and_fetch_key(extractedPars, "totalCpuNumReads", 0)
+    totalCpuNumWrites   = check_and_fetch_key(extractedPars, "totalCpuNumWrites", 0)
+    totalCpuLatency     = check_and_fetch_key(extractedPars, "totalCpuLatency", 0)
+    numGenCpus          = getNumCpus(runtimeConfig)
+    normCpuReadLatency  = None
+    normCpuWriteLatency = None
 
     if (
         ((numGenCpus is not None) and (numGenCpus > 0))
-        and ((totalNumReads is not None) and (totalNumReads >= 0))
-        and ((totalNumWrites is not None) and (totalNumWrites >= 0))
+        and ((totalCpuNumReads is not None) and (totalCpuNumReads >= 0))
+        and ((totalCpuNumWrites is not None) and (totalCpuNumWrites >= 0))
         and ((simTicks is not None) and (simTicks > 0))
         and ((ticksPerCycle is not None) and (ticksPerCycle > 0))
-        and ((totalLatency is not None) and (totalLatency > 0))
+        and ((totalCpuLatency is not None) and (totalCpuLatency > 0))
     ):
-        if totalNumReads != 0:
-            normReadLatency = int(
-                float(totalLatency) / float(totalNumReads * ticksPerCycle)
+        if totalCpuNumReads != 0:
+            normCpuReadLatency = int(
+                float(totalCpuLatency) / float(totalCpuNumReads * ticksPerCycle)
             )
-        if totalNumWrites != 0:
-            normWriteLatency = int(
-                float(totalLatency) / float(totalNumWrites * ticksPerCycle)
+        if totalCpuNumWrites != 0:
+            normCpuWriteLatency = int(
+                float(totalCpuLatency) / float(totalCpuNumWrites * ticksPerCycle)
+            )
+    
+    # Repeat the above for DMA devices
+    totalDmaNumReads    = check_and_fetch_key(extractedPars, "totalDmaNumReads", 0)
+    totalDmaNumWrites   = check_and_fetch_key(extractedPars, "totalDmaNumWrites", 0)
+    totalDmaLatency     = check_and_fetch_key(extractedPars, "totalDmaLatency", 0)
+    normDmaReadLatency  = None
+    normDmaWriteLatency = None
+    numGenDmas          = getNumGenDmas(runtimeConfig)
+    if (
+        ((numGenDmas is not None) and (numGenDmas > 0))
+        and ((totalDmaNumReads is not None) and (totalDmaNumReads >= 0))
+        and ((totalDmaNumWrites is not None) and (totalDmaNumWrites >= 0))
+        and ((simTicks is not None) and (simTicks > 0))
+        and ((ticksPerCycle is not None) and (ticksPerCycle > 0))
+        and ((totalDmaLatency is not None) and (totalDmaLatency > 0))
+    ):
+        if totalDmaNumReads != 0:
+            normDmaReadLatency = int(
+                float(totalDmaLatency) / float(totalDmaNumReads * ticksPerCycle)
+            )
+        if totalDmaNumWrites != 0:
+            normDmaWriteLatency = int(
+                float(totalDmaLatency) / float(totalDmaNumWrites * ticksPerCycle)
             )
 
-    return {"readLatency": normReadLatency, "writeLatency": normWriteLatency, "numGenCpus": numGenCpus}
+    return {"cpuReadLatency": normCpuReadLatency, 
+            "cpuWriteLatency": normCpuWriteLatency,
+            'dmaReadLatency': normDmaReadLatency,
+            'dmaWriteLatency': normDmaWriteLatency,
+            "numGenDmas": numGenDmas,
+            "numGenCpus": numGenCpus}
 
 # for back-ward compatible
 def analyze_read_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:

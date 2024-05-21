@@ -1,0 +1,54 @@
+# Starfive Tester Base Config
+# *********************
+# [] represents an array, each element in which will be iterated and tested separately
+# i.e. num-cpus: [2,4], num-dirs: [2,4] means that there will be 4 tests in total
+# *********************
+
+# include other configuration files, included contents will be overwritten by this file if both fileds occur
+include: ['test_config/microbenchmark/seq_memtest.yaml', 'test_config/microbenchmark/CHI_base.yaml']
+WORKERS: 32
+
+# L1 Cache
+l1d_assoc: [2]
+l1i_assoc: [2]
+# L2 Cache
+l2_assoc: [2]
+# L3 Cache
+l3_assoc: [8]
+num-l3caches: [1]            # total number of l3-caches in the system
+# Total L3 Cache Size = num-l3caches * l3_size 
+
+# TBE settings
+num-HNF-TBE: [32]
+num-RNF-TBE: [64]
+num-SNF-TBE: [32]
+outstanding-req: [10000]      # unlimited CPU side outstanding request
+
+# Topology
+num-dies: [1] 
+num-cpus: [1]
+num-dirs: [1]
+num-dmas: [1]
+
+# Hardcoded QPV
+enable-qos-hnf: [false]
+one_cpu_rnf_qpv: [8]
+one_cpu_dma_qpv: [14]
+
+# Nogen CPUs/DMAs to suppress request
+no-gen-rni: ['0']
+
+# total size of accessed memory = size-ws * maxloads
+compose: [
+  # Memory read bandwidth
+  {
+    # cache size
+    l1d_size: [256B],
+    l1i_size: [256B],
+    l2_size: [512B],
+    l3_size: [16KiB],       # size of each LLC
+    # working-set size
+    size-ws: [131072],
+    maxloads: [5]
+  }
+]

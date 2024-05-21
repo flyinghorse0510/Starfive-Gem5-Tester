@@ -213,17 +213,13 @@ summary:
     - {data: "hostSeconds", head: "Run Time(s)"}
     - {data: "hostHours", head: "Run Time(h)"}
     - {data: "hostMemory", head: "Memory Usage"}
-    - {data: "num-dies", head: "Dies(total)"}
-    - {data: "numa-str", head: "NUMA mode"}
-    - {data: "numNumaModes", head: "Num NUMA domains"}
-    - {data: "enable_subnuma_clustering", head: "Subnuma enabled"}
     - {data: "numNormDirs", head: "Memory Controllers(per Die)"}
     - {data: "numGenCpus", head: "CPUs(total generating)"}
+    - {data: "numGenDmas", head: "DMAs(total generating)"}
     - {data: "mem-test-type", head: "Memtest type"}
-    # - {data: "one_cpu_rnf_loc", head: "CPU Location"}
     - {data: "outstanding-req", head: "CPU Max-Outstanding"}
     - {data: "AccPattern", head: "Access Pattern"}
-    - {data: "numNormL3caches", head: "LLCs(per Die)"}
+    - {data: "numNormL3caches", head: "LLCs"}
     - {data: "l1d_size", head: "L1d Size"}
     - {data: "l1d_assoc", head: "L1d Assoc"}
     - {data: "l1i_size", head: "L1i Size"}
@@ -232,38 +228,20 @@ summary:
     - {data: "l2_assoc", head: "L2 Assoc"}
     - {data: "l3_size", head: "L3 Size"}
     - {data: "l3_assoc", head: "L3 Assoc"}
-    # - {data: "simple-int-link-bw-factor", head: "Int BW Factor"}
-    # - {data: "HASnoopFilter", head: "HASnoopFilter"}
-    # - {data: "HNFSnoopFilter", head: "HNFSnoopFilter"}
-    # - {data: "genEvictOnReplHnf", head: "HNF to HA Eviction Type"}
-    # - {data: "ha-snoopfilter-cov-factor", head: "HA SnoopFilter coverage factor"}
     - {data: "num-RNF-TBE", head: "L2 TBEs"}
-    - {data: "num-HA-TBE", head: "HA TBEs"}
-    - {data: "num-SNF-TBE", head: "SNF TBEs"}
-    - {data: "int-link-latency", head: "Int-Link Latency"}
-    - {data: "ext-link-latency", head: "Ext-Link Latency"}
-    - {data: "router-latency", head: "Router Latency"}
-    # - {data: "L1D_Occupancy", head: "L1D Utilization Avg"}
-    # - {data: "RNF_Occupancy", head: "RNF Utilization Avg"}
-    # - {data: "L2RetryAcks", head: "L2_L1RetryAcks"}
-    - {data: "HNF_Occupancy", head: "HNF Utilization Avg"}
-    - {data: "HA_Occupancy", head: "HA Utilization Avg"}
-    - {data: "SNF_Occupancy", head: "SNF Utilization Avg"}
-    - {data: "simple-ext-link-bw-factor", head: "ext link bw"}
-    - {data: "simple-int-link-bw-factor", head: "int link bw"}
-    # - {data: "num_DDR", head: "Num DDRs"}
-    # - {data: "num_DDR_side", head: "DDR locations"}
+    # - {data: "num-SNF-TBE", head: "SNF TBEs"}
+    # - {data: "HNF_Occupancy", head: "HNF Utilization Avg"}
+    # - {data: "SNF_Occupancy", head: "SNF Utilization Avg"}
+    # - {data: "simple-ext-link-bw-factor", head: "ext link bw"}
+    # - {data: "simple-int-link-bw-factor", head: "int link bw"}
     - {data: "workset", head: "Working Set"}
-    # - {data: "TransmitRetryD2D", head: "Transmit or Absorb retry"}
-    # - {data: "accessRegion", head: "Region"}
     - {data: "maxloads", head: "Load Factor"}
-    # - {data: "percentCopyBackTraffic", head: "Percent of copyback (e.g. WriteEvicts) traffic to HA"}
     - {data: "totalCpuReadBandWidth", head: "CPU Total Bandwidth(GBps)"}
     - {data: "normCpuReadBandwidth",  head: "CPU Average Bandwidth(GBps)"}
     - {data: "cpuReadLatency", head: "CPU Read Latency(Cycles)"}
-    - {data: "num_txremap_entries", head: "Num Tx Remap"}
-    - {data: "num_rxremap_entries", head: "Num Rx Remap"}
-    # - {data: "d2d_traversal_latency", head: "D2D Link Latency(Cycle)"}
+    - {data: "totalDmaReadBandWidth", head: "DMA Total Bandwidth(GBps)"}
+    - {data: "normDmaReadBandwidth",  head: "DMA Average Bandwidth(GBps)"}
+    - {data: "dmaReadLatency", head: "DMA Read Latency(Cycles)"}
     - {data: "L1D_HitRate", head: "L1D_HitRate"}
     - {data: "L2_HitRate", head: "L2_HitRate"}
     - {data: "L3_HitRate", head: "L3_HitRate"}
