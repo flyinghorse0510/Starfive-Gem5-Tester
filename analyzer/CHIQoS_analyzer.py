@@ -41,6 +41,7 @@ def analyze_perceived_bandwidth(runtimeConfig: dict, extractedPars: dict, target
             cpuPercvdLatList.append(int(float(totalLat)/float((rd+wr)*ticksPerCycle)))
 
     dmaFinalLatency  = util.check_and_fetch_key(extractedPars, "dmaFinalLatency")
+    dmaTotalLatency  = util.check_and_fetch_key(extractedPars, "dmaTotalLatency")
     dmaNumReads      = util.check_and_fetch_key(extractedPars, "dmaNumReads")
     dmaNumWrites     = util.check_and_fetch_key(extractedPars, "dmaNumWrites")
     dmaPercvdBwList  = []
@@ -52,8 +53,9 @@ def analyze_perceived_bandwidth(runtimeConfig: dict, extractedPars: dict, target
     ) :
         assert(len(dmaFinalLatency)==len(dmaNumReads))
         assert(len(dmaFinalLatency)==len(dmaNumWrites))
-        accesses = list(zip(dmaNumReads,dmaNumWrites,dmaFinalLatency))
-        for rd,wr,finalLat in accesses :
+        assert(len(dmaFinalLatency)==len(dmaTotalLatency))
+        accesses = list(zip(dmaNumReads,dmaNumWrites,dmaFinalLatency,dmaTotalLatency))
+        for rd,wr,finalLat,totalLat in accesses :
             dmaPercvdBwList.append(float(64*(rd+wr))/(float(finalLat) / float(simFreq) * 1000 * 1000 * 1000))
             dmaPercvdLatList.append(int(float(totalLat)/float((rd+wr)*ticksPerCycle)))
     return {
