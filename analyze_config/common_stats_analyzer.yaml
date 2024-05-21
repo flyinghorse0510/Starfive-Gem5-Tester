@@ -1,0 +1,138 @@
+target:
+  "stats.txt":
+    ticksPerCycle:
+      pattern: 'system.clk_domain.clock( +)(\d+)'
+      location: [2]
+      type: [int]
+
+    simTicks:
+      pattern: 'simTicks( +)(\d+)'
+      location: [2]
+      type: [int]
+
+    simSeconds:
+      pattern: 'simSeconds( +)([\.\d]+)'
+      location: [2]
+      type: [float]
+
+    simFreq:
+      pattern: 'simFreq( +)(\d+)'
+      location: [2]
+      type: [int]
+
+    hnfHit:
+      pattern: 'system.ruby.hnf[s]*(\d*).cntrl.cache.m_demand_hits( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+
+    hnfMiss:
+      pattern: 'system.ruby.hnf[s]*(\d*).cntrl.cache.m_demand_misses( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+    
+    hnfacc:
+      pattern: 'system.ruby.hnf[s]*(\d*).cntrl.cache.m_demand_accesses( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+    
+    l1dhit:
+      pattern: 'system.cpu(\d*).l1d.cache.m_demand_hits( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+    
+    l1dacc:
+      pattern: 'system.cpu(\d*).l1d.cache.m_demand_accesses( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+    
+    l2hit:
+      pattern: 'system.cpu(\d*).l2.cache.m_demand_hits( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+    
+    l2acc:
+      pattern: 'system.cpu(\d*).l2.cache.m_demand_accesses( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+
+    hostSeconds:
+      pattern: 'hostSeconds( +)([\.\d]+)'
+      location: [2]
+      type: [float]
+
+    hostMemory:
+      pattern: 'hostMemory( +)(\d+)'
+      location: [2]
+      type: [int]
+    
+    l1dTbeUtil:
+      pattern: 'system.cpu(\d*).l1d.avg_util( +)([\.\d]+)( +)# TBE Request Utilization \(Unspecified\)'
+      location: [3]
+      type: [float]
+      reduce: "+="
+    
+    l2RetryAcks:
+      pattern: 'system.cpu(\d*).l2.retryAcks( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+
+    rnfTbeUtil:
+      pattern: 'system.cpu(\d*).l2.avg_util( +)([\.\d]+)( +)# TBE Request Utilization \(Unspecified\)'
+      location: [3]
+      type: [float]
+      reduce: "+="
+
+    hnfTbeUtil:
+      pattern: 'system.ruby.hnf(s?)(\d*).cntrl.avg_util( +)([\.\d]+)( +)# TBE Request Utilization \(Unspecified\)'
+      location: [4]
+      type: [float]
+      reduce: "+="
+    
+    snfTbeUtil:
+      pattern: 'system.ruby.snf(s?)(\d*).cntrl.avg_util( +)([\.\d]+)( +)# TBE Request Utilization \(Unspecified\)'
+      location: [4]
+      type: [float]
+      reduce: "+="
+
+    dramRdRowHits:
+      pattern: 'system.mem_ctrls(\d*).dram.readRowHits( +)([\.\d]+)( +)'
+      location: [3]
+      type: [float]
+      reduce: "+="
+    
+    dramRdReqs:
+      pattern: 'system.mem_ctrls(\d*).readReqs( +)([\.\d]+)( +)'
+      location: [3]
+      type: [float]
+      reduce: "+="
+    
+    dramWrRowHits:
+      pattern: 'system.mem_ctrls(\d*).dram.writeRowHits( +)([\.\d]+)( +)'
+      location: [3]
+      type: [float]
+      reduce: "+="
+    
+    dramWrReqs:
+      pattern: 'system.mem_ctrls(\d*).writeReqs( +)([\.\d]+)( +)'
+      location: [3]
+      type: [float]
+      reduce: "+="
+    
+    dramAvgAccLat:
+      pattern: 'system.mem_ctrls(\d*).dram.avgMemAccLat( +)([\.\d]+)( +)'
+      location: [3]
+      type: [float]
+      reduce: "+="
+
+    parserForceTerminate:
+      pattern: '.*End Simulation Statistics.*'
+      location: []
+      type: []

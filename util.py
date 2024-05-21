@@ -193,13 +193,12 @@ def check_key(parsDict: dict, key: str):
         return True
     return False
 
-
 # check if the key exists in dictionary, if not, then return None;
 # If the key exists:
 # 1. The element is an empty list or dict, then return None
 # 2. The index is not None, then return the element's indexed value
 # 3. The index is None, then return the element
-def check_and_fetch_key(parsDict: dict, key: str, index=None):
+def check_and_fetch_key(parsDict: dict, key: str, index = None): # type: ignore
     if check_key(parsDict, key):
         if index is not None:
             return parsDict[key][index]
@@ -207,6 +206,19 @@ def check_and_fetch_key(parsDict: dict, key: str, index=None):
             return parsDict[key]
     return None
 
+def getNumGenCpus(runtimeConfig: dict) -> int :
+    effective_cpu_list = check_and_fetch_key(runtimeConfig, "effective_cpu_list")
+    numCpus = -1
+    if (effective_cpu_list is not None)  :
+        numCpus = len([c for c in effective_cpu_list if c >= 0])
+    return numCpus
+    
+def getNumGenDmas(runtimeConfig: dict) -> int :
+    effective_dma_list = check_and_fetch_key(runtimeConfig, "effective_dma_list")
+    numDmas = -1
+    if (effective_dma_list is not None)  :
+        numDmas = len([d for d in effective_dma_list if d >= 0])
+    return numDmas
 
 # download remote file(with URL) into specific directory and return the file path
 def download_to_dir(url: str, targetDir: str) -> str:

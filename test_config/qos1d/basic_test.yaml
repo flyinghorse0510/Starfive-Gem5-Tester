@@ -35,8 +35,14 @@ enable-qos-hnf: [false]
 one_cpu_rnf_qpv: [8]
 one_cpu_dma_qpv: [14]
 
+# Injection intervals
+cpu-inj-interval: ['200']
+dma-inj-interval: ['1']
+
 # Nogen CPUs/DMAs to suppress request
-no-gen-rni: ['0']
+
+# debug flags
+debug_flags: ['SeqMemLatTest']
 
 # total size of accessed memory = size-ws * maxloads
 compose: [

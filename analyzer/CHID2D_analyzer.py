@@ -1,71 +1,20 @@
 import os
 import sys
+import util
 import logging
 import pprint as pp
 import pandas as pd
 
-# check if the key exists in dictionary, if not, then return False;
-# If the key exists:
-# 1. The element is an empty list or dict, then return False
-# 2. Otherwise, return True
-def check_key(parsDict: dict, key: str):
-    if (key in parsDict) and (parsDict[key] is not None):
-        if (type(parsDict[key]) == list) or (type(parsDict[key]) == dict):
-            if len(parsDict[key]) == 0:
-                return False
-        return True
-    return False
-
-# check if the key exists in dictionary, if not, then return None;
-# If the key exists:
-# 1. The element is an empty list or dict, then return None
-# 2. The index is not None, then return the element's indexed value
-# 3. The index is None, then return the element
-def check_and_fetch_key(parsDict: dict, key: str, index = None): # type: ignore
-    if check_key(parsDict, key):
-        if index is not None:
-            return parsDict[key][index]
-        else:
-            return parsDict[key]
-    return None
-
-def getNumGenCpus(runtimeConfig: dict) -> int :
-    noGen   = check_and_fetch_key(runtimeConfig, "no-gen-die", 0)
-    numCpus = check_and_fetch_key(runtimeConfig, "num-cpus", 0)
-    numDies = check_and_fetch_key(runtimeConfig, "num-dies", 0)
-    numGenCpus = numCpus
-    if noGen is not None:
-        numCpuPerDie = int(numCpus / numDies)
-        noGenDieList = list(map(lambda noGen: int(noGen), noGen.split(",")))
-        numNoGenDie = len(noGenDieList)
-        numGenCpus -= numNoGenDie * numCpuPerDie
-    return numGenCpus
-
-def getNumCpus(runtimeConfig: dict) -> int :
-    effective_cpu_list = check_and_fetch_key(runtimeConfig, "effective_cpu_list")
-    numCpus = -1
-    if (effective_cpu_list is not None)  :
-        numCpus = len([c for c in effective_cpu_list if c >= 0])
-    return numCpus
-    
-def getNumGenDmas(runtimeConfig: dict) -> int :
-    effective_dma_list = check_and_fetch_key(runtimeConfig, "effective_dma_list")
-    numDmas = -1
-    if (effective_dma_list is not None)  :
-        numDmas = len([d for d in effective_dma_list if d >= 0])
-    print(f'numDmas: {numDmas}')
-    return numDmas
-    
 def analyze_access_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
     # Compute the total ticks and cycles
-    simTicks      = check_and_fetch_key(extractedPars, "simTicks", 0)
-    ticksPerCycle = check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
-    simFreq       = check_and_fetch_key(extractedPars, "simFreq", 0)
+    simTicks      = util.check_and_fetch_key(extractedPars, "simTicks", 0)
+    ticksPerCycle = util.check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
+    simFreq       = util.check_and_fetch_key(extractedPars, "simFreq", 0)
 
     # CPU Rd/Wr latency
-    totalCpuNumReads       = check_and_fetch_key(extractedPars, "totalCpuNumReads", 0)
-    totalCpuNumWrites      = check_and_fetch_key(extractedPars, "totalCpuNumWrites", 0)
-    numGenCpus             = getNumCpus(runtimeConfig)
+    totalCpuNumReads       = util.check_and_fetch_key(extractedPars, "totalCpuNumReads", 0)
+    totalCpuNumWrites      = util.check_and_fetch_key(extractedPars, "totalCpuNumWrites", 0)
+    numGenCpus             = util.getNumGenCpus(runtimeConfig)
     totalCpuReadBandwidth  = None
     totalCpuWriteBandwidth = None
     normCpuReadBandwidth   = None
@@ -93,9 +42,9 @@ def analyze_access_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir
         normCpuWriteBandwidth = totalCpuWriteBandwidth / numGenCpus
 
     # Repeat the above for DMA devices
-    totalDmaNumReads       = check_and_fetch_key(extractedPars, "totalDmaNumReads", 0)
-    totalDmaNumWrites      = check_and_fetch_key(extractedPars, "totalDmaNumWrites", 0)
-    numGenDmas             = getNumGenDmas(runtimeConfig)
+    totalDmaNumReads       = util.check_and_fetch_key(extractedPars, "totalDmaNumReads", 0)
+    totalDmaNumWrites      = util.check_and_fetch_key(extractedPars, "totalDmaNumWrites", 0)
+    numGenDmas             = util.getNumGenDmas(runtimeConfig)
     totalDmaReadBandwidth  = None
     totalDmaWriteBandwidth = None
     normDmaReadBandwidth   = None
@@ -139,10 +88,9 @@ def analyze_access_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir
 def analyze_read_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
     return analyze_access_bandwidth(runtimeConfig, extractedPars, targetDir)
     
-
 def analyze_copyback_traffic(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
-    incomingReqHATraffic      = check_and_fetch_key(extractedPars,"incomingReqHATraffic",0)
-    incomingCopyBackHATraffic = check_and_fetch_key(extractedPars,"incomingCopyBackHATraffic",0)
+    incomingReqHATraffic      = util.check_and_fetch_key(extractedPars,"incomingReqHATraffic",0)
+    incomingCopyBackHATraffic = util.check_and_fetch_key(extractedPars,"incomingCopyBackHATraffic",0)
     if incomingReqHATraffic is not None :
         incomingReqHATraffic = int(incomingReqHATraffic)
     else :
@@ -158,63 +106,60 @@ def analyze_copyback_traffic(runtimeConfig: dict, extractedPars: dict, targetDir
     }
 
 def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict :
-    numDirs    = check_and_fetch_key(runtimeConfig, "num-dirs", 0)
-    numHnfs    = check_and_fetch_key(runtimeConfig, "num-l3caches", 0)
-    numGenCpus = getNumCpus(runtimeConfig)
-    snfTbeUtil = check_and_fetch_key(extractedPars,"snfTbeUtil",0)
+    numDirs    = util.check_and_fetch_key(runtimeConfig, "num-dirs", 0)
+    numHnfs    = util.check_and_fetch_key(runtimeConfig, "num-l3caches", 0)
+    numGenCpus = util.getNumGenCpus(runtimeConfig)
+    snfTbeUtil = util.check_and_fetch_key(extractedPars,"snfTbeUtil",0)
     snfTbeUtilAvg = -1000000.0
     haTbeUtilAvg  = -1000000.0
     rnfTbeUtilAvg = -1000000.0
     l1dTbeUtilAvg = -1000000.0
-    hnfTbeUtil = check_and_fetch_key(extractedPars,"hnfTbeUtil",0)
+    hnfTbeUtil = util.check_and_fetch_key(extractedPars,"hnfTbeUtil",0)
     if hnfTbeUtil is not None :
         hnfTbeUtil = float(hnfTbeUtil)
         hnfTbeUtilAvg = hnfTbeUtil/numHnfs
     if snfTbeUtil is not None :
         snfTbeUtil = float(snfTbeUtil)
         snfTbeUtilAvg = snfTbeUtil/numDirs
-    haTbeUtil = check_and_fetch_key(extractedPars,"haTbeUtil",0)
+    haTbeUtil = util.check_and_fetch_key(extractedPars,"haTbeUtil",0)
     if haTbeUtil is not None :
         haTbeUtil = float(haTbeUtil)
         haTbeUtilAvg = haTbeUtil/numDirs
-    rnfTbeUtil = check_and_fetch_key(extractedPars,"rnfTbeUtil",0)
+    rnfTbeUtil = util.check_and_fetch_key(extractedPars,"rnfTbeUtil",0)
     if rnfTbeUtil is not None :
         rnfTbeUtil = float(rnfTbeUtil)
         rnfTbeUtilAvg = rnfTbeUtil/numGenCpus
-    l1dTbeUtil = check_and_fetch_key(extractedPars,"l1dTbeUtil",0)
+    l1dTbeUtil = util.check_and_fetch_key(extractedPars,"l1dTbeUtil",0)
     if l1dTbeUtil is not None :
         l1dTbeUtil = float(l1dTbeUtil)
         l1dTbeUtilAvg = l1dTbeUtil/numGenCpus
-    l2RetryAcks = check_and_fetch_key(extractedPars,"l2RetryAcks",0)
+    l2RetryAcks = util.check_and_fetch_key(extractedPars,"l2RetryAcks",0)
     l2RetryAcksAvg = -1000000.0
     if l2RetryAcks is not None :
         l2RetryAcks = float(l2RetryAcks)
         l2RetryAcksAvg = l2RetryAcks/numGenCpus
-    l1dhits = check_and_fetch_key(extractedPars,"l1dhit",0)
-    l1dacc = check_and_fetch_key(extractedPars,"l1dacc",0)
+    l1dhits = util.check_and_fetch_key(extractedPars,"l1dhit",0)
+    l1dacc = util.check_and_fetch_key(extractedPars,"l1dacc",0)
     l1dHitRate = 0
     if l1dacc > 0 :
         l1dHitRate = float(l1dhits/l1dacc)
-    l2hits = check_and_fetch_key(extractedPars,"l2hit",0)
-    l2acc = check_and_fetch_key(extractedPars,"l2acc",0)
+    l2hits = util.check_and_fetch_key(extractedPars,"l2hit",0)
+    l2acc = util.check_and_fetch_key(extractedPars,"l2acc",0)
     l2HitRate = 0
     if l2acc > 0 :
         l2HitRate = float(l2hits/l2acc)
-    l3hits = check_and_fetch_key(extractedPars,"hnfHit",0)
-    l3acc = check_and_fetch_key(extractedPars,"hnfacc",0)
+    l3hits = util.check_and_fetch_key(extractedPars,"hnfHit",0)
+    l3acc = util.check_and_fetch_key(extractedPars,"hnfacc",0)
     l3HitRate = 0
     if l3acc is not None :
         if l3acc > 0 :
             l3HitRate = float(l3hits/l3acc)
-    dramRdRowHits = check_and_fetch_key(extractedPars,"dramRdRowHits",0)
-    dramWrRowHits = check_and_fetch_key(extractedPars,"dramWrRowHits",0)
-    dramRdReqs = check_and_fetch_key(extractedPars,"dramRdReqs",0)
-    dramWrReqs = check_and_fetch_key(extractedPars,"dramWrReqs",0)
-    dramAvgAccLat = check_and_fetch_key(extractedPars,"dramAvgAccLat",0)
-    # dramRdRowHits = 0
-    # dramWrRowHits = 0
+    dramRdRowHits = util.check_and_fetch_key(extractedPars,"dramRdRowHits",0)
+    dramWrRowHits = util.check_and_fetch_key(extractedPars,"dramWrRowHits",0)
+    dramRdReqs = util.check_and_fetch_key(extractedPars,"dramRdReqs",0)
+    dramWrReqs = util.check_and_fetch_key(extractedPars,"dramWrReqs",0)
+    dramAvgAccLat = util.check_and_fetch_key(extractedPars,"dramAvgAccLat",0)
     dramRowHitRate = -1
-    # print(f'{dramRdRowHits},{dramWrRowHits},{dramRdReqs},{dramWrReqs}')
     if ((dramRdRowHits is not None) and
         (dramWrRowHits is not None) and
         (dramRdReqs is not None) and
@@ -244,8 +189,8 @@ def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) 
     }
     
 def analyze_cpu_ipc(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
-    totalCPUCycles = check_and_fetch_key(extractedPars, "totalCPUCycles", 0)
-    totalCPUInsts = check_and_fetch_key(extractedPars, "totalCPUInsts", 0)
+    totalCPUCycles = util.check_and_fetch_key(extractedPars, "totalCPUCycles", 0)
+    totalCPUInsts = util.check_and_fetch_key(extractedPars, "totalCPUInsts", 0)
     
     if totalCPUCycles is not None and totalCPUInsts is not None:
         return {"aveCPUIPC": totalCPUInsts / totalCPUCycles}
@@ -257,14 +202,14 @@ def getHASnoopFilterMissRate(runtimeConfig: dict, extractedPars: dict, targetDir
 
 def analyze_access_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
     # Compute the total ticks and cycles
-    simTicks          = check_and_fetch_key(extractedPars, "simTicks", 0)
-    ticksPerCycle     = check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
+    simTicks          = util.check_and_fetch_key(extractedPars, "simTicks", 0)
+    ticksPerCycle     = util.check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
 
     # CPU Rd/Wr latency
-    totalCpuNumReads    = check_and_fetch_key(extractedPars, "totalCpuNumReads", 0)
-    totalCpuNumWrites   = check_and_fetch_key(extractedPars, "totalCpuNumWrites", 0)
-    totalCpuLatency     = check_and_fetch_key(extractedPars, "totalCpuLatency", 0)
-    numGenCpus          = getNumCpus(runtimeConfig)
+    totalCpuNumReads    = util.check_and_fetch_key(extractedPars, "totalCpuNumReads", 0)
+    totalCpuNumWrites   = util.check_and_fetch_key(extractedPars, "totalCpuNumWrites", 0)
+    totalCpuLatency     = util.check_and_fetch_key(extractedPars, "totalCpuLatency", 0)
+    numGenCpus          = util.getNumGenCpus(runtimeConfig)
     normCpuReadLatency  = None
     normCpuWriteLatency = None
 
@@ -286,12 +231,12 @@ def analyze_access_latency(runtimeConfig: dict, extractedPars: dict, targetDir: 
             )
     
     # Repeat the above for DMA devices
-    totalDmaNumReads    = check_and_fetch_key(extractedPars, "totalDmaNumReads", 0)
-    totalDmaNumWrites   = check_and_fetch_key(extractedPars, "totalDmaNumWrites", 0)
-    totalDmaLatency     = check_and_fetch_key(extractedPars, "totalDmaLatency", 0)
+    totalDmaNumReads    = util.check_and_fetch_key(extractedPars, "totalDmaNumReads", 0)
+    totalDmaNumWrites   = util.check_and_fetch_key(extractedPars, "totalDmaNumWrites", 0)
+    totalDmaLatency     = util.check_and_fetch_key(extractedPars, "totalDmaLatency", 0)
     normDmaReadLatency  = None
     normDmaWriteLatency = None
-    numGenDmas          = getNumGenDmas(runtimeConfig)
+    numGenDmas          = util.getNumGenDmas(runtimeConfig)
     if (
         ((numGenDmas is not None) and (numGenDmas > 0))
         and ((totalDmaNumReads is not None) and (totalDmaNumReads >= 0))
@@ -322,33 +267,33 @@ def analyze_read_latency(runtimeConfig: dict, extractedPars: dict, targetDir: st
     
 
 def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
-    numDies = check_and_fetch_key(runtimeConfig, "num-dies", 0)
-    numDirs = check_and_fetch_key(runtimeConfig, "num-dirs", 0)
-    sizeWs = check_and_fetch_key(runtimeConfig, "size-ws", 0)
-    numL3Caches = check_and_fetch_key(runtimeConfig, "num-l3caches", 0)
-    fsScript = check_and_fetch_key(runtimeConfig, "script", 0)
-    simSeconds = check_and_fetch_key(extractedPars, "simSeconds", 0)
-    hostSeconds = check_and_fetch_key(extractedPars, "hostSeconds", 0)
+    numDies = util.check_and_fetch_key(runtimeConfig, "num-dies", 0)
+    numDirs = util.check_and_fetch_key(runtimeConfig, "num-dirs", 0)
+    sizeWs = util.check_and_fetch_key(runtimeConfig, "size-ws", 0)
+    numL3Caches = util.check_and_fetch_key(runtimeConfig, "num-l3caches", 0)
+    fsScript = util.check_and_fetch_key(runtimeConfig, "script", 0)
+    simSeconds = util.check_and_fetch_key(extractedPars, "simSeconds", 0)
+    hostSeconds = util.check_and_fetch_key(extractedPars, "hostSeconds", 0)
     hostHours = hostSeconds / 3600.0 if hostSeconds is not None else None
-    hostMemory = check_and_fetch_key(extractedPars, "hostMemory", 0)
-    aveLoadLatency = check_and_fetch_key(extractedPars, "aveLoadLatency", 0)
-    aveStoreLatency = check_and_fetch_key(extractedPars, "aveStoreLatency", 0)
+    hostMemory = util.check_and_fetch_key(extractedPars, "hostMemory", 0)
+    aveLoadLatency = util.check_and_fetch_key(extractedPars, "aveLoadLatency", 0)
+    aveStoreLatency = util.check_and_fetch_key(extractedPars, "aveStoreLatency", 0)
     
     
     if hostMemory is not None:
         hostMemory = "%.2lf" %(float(hostMemory) / 1024 / 1024) + "GiB"
-    allowInfiniteSFEntriesHA = check_and_fetch_key(
+    allowInfiniteSFEntriesHA = util.check_and_fetch_key(
         runtimeConfig, "allow-ha-infinite-SF-entries", 0
     )
-    allowInfiniteSFEntriesHNF = check_and_fetch_key(
+    allowInfiniteSFEntriesHNF = util.check_and_fetch_key(
         runtimeConfig, "allow-hnf-infinite-SF-entries", 0
     )
-    genEvictOnReplHnfCode = check_and_fetch_key(runtimeConfig,'gen_evict_on_repl_hnf',0)
+    genEvictOnReplHnfCode = util.check_and_fetch_key(runtimeConfig,'gen_evict_on_repl_hnf',0)
     genEvictOnReplHnf = 'Evict' if genEvictOnReplHnfCode else 'WriteEvictFull'
-    noGen = check_and_fetch_key(runtimeConfig, "no-gen-die", 0)
-    transmit_retryack = check_and_fetch_key(runtimeConfig, "transmit-retryack", 0)
-    ddr_side_code = check_and_fetch_key(runtimeConfig,"DDR-side-num", 0)
-    accPatternCode = check_and_fetch_key(runtimeConfig,"addr-intrlvd-or-tiled",0)
+    noGen = util.check_and_fetch_key(runtimeConfig, "no-gen-die", 0)
+    transmit_retryack = util.check_and_fetch_key(runtimeConfig, "transmit-retryack", 0)
+    ddr_side_code = util.check_and_fetch_key(runtimeConfig,"DDR-side-num", 0)
+    accPatternCode = util.check_and_fetch_key(runtimeConfig,"addr-intrlvd-or-tiled",0)
     accPattern = 'Interleaved' if accPatternCode else 'Tiled'
     sfHAEntries = "Ideal" if allowInfiniteSFEntriesHA else "Realistic"
     sfHNFEntries = "Ideal" if allowInfiniteSFEntriesHNF else "Realistic"
@@ -356,7 +301,7 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
     numNormDirs = int(numDirs / numDies)
     numNormL3caches = int(numL3Caches / numDies)
     workset = None if sizeWs is None else str(float(sizeWs / 1024)) + "KiB"
-    num_DDR = check_and_fetch_key(runtimeConfig, "DDR-loc-num", 0)
+    num_DDR = util.check_and_fetch_key(runtimeConfig, "DDR-loc-num", 0)
     num_DDR_side = "Unknown"
     if (num_DDR == 2) :
         num_DDR_side = "13"
@@ -381,7 +326,7 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
         else:
             accessRegion = "Cross-Die"
 
-    numa_str = check_and_fetch_key(runtimeConfig,"numa-str",0)
+    numa_str = util.check_and_fetch_key(runtimeConfig,"numa-str",0)
     numNumaModes = 1
     if numa_str == 'syswide_1numa' :
         numNumaModes = 1
@@ -415,7 +360,7 @@ def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) ->
     return analyzedDict
 
 def analyze_trace_request_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
-    ticksPerCycle = check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
+    ticksPerCycle = util.check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
     if ticksPerCycle is None or ticksPerCycle <= 0:
         logging.error("[analyze_trace_request_latency]: ticksPerCycle ERROR!")
         return {}
