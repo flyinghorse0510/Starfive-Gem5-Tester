@@ -7,6 +7,8 @@ Instruction Head (64-Bit)
 """
 
 import struct
+import sys, os
+sys.path.append(f"{os.path.dirname(os.path.abspath(__file__))}/../")
 
 OpCode = {
     # Basic(Data) Instructions
@@ -32,8 +34,8 @@ OpCode = {
     "DUMP": 9,
     "CLEAR": 10,
     # Store/Load Mixed Instructions
-    "ACCR": 11,
-    "RAACCR": 11
+    "RVACCR": 11,
+    "RARVACCR": 11
 }
 
 effectInstSize = {
@@ -54,8 +56,8 @@ effectInstSize = {
   "NOP": [1, 1],
   "DUMP": [1, 1],
   "CLEAR": [1, 1],
-#   "ACCR": [1, 1]
-#   "RAACCR": []
+  "RVACCR": [4, 4],
+  "RARVACCR": [4, 4],
 }
 
 instMap = {
@@ -69,7 +71,9 @@ instMap = {
     "SYNC": "SYNC",
     "BEGIN_LOOP": "BLOOP",
     "END_LOOP": "ELOOP",
-    "NOP": "NOP"
+    "NOP": "NOP",
+    "RANDOM_VALUE_ACCESS_REGION": "RVACCR",
+    "RANDOM_ADDR_RANDOM_VALUE_ACCESS_REGION": "RARVACCR"
 }
 
 class BinaryInsts:
@@ -127,6 +131,30 @@ class BinaryInsts:
         instBytes = struct.pack(instFmt, *inst)
         self.BinInstList[hart].append(instBytes)
 
+    def RVACCR(self, hart, instSize, delay, dataSize, readPercent, startAddr, endAddr, addrInterval):
+        """
+        Random-Value Access Region
+        """
+        self.check_hart_buffer(hart)
+        opCode = OpCode["RVACCR"]
+        readWeight = int((2**16 - 1) * readPercent)
+        inst = (instSize, opCode, delay, dataSize, 1<<2 | 1, readWeight, startAddr, endAddr, addrInterval)
+        instFmt = "=BBHBBHQQQ"
+        instBytes = struct.pack(instFmt, *inst)
+        self.BinInstList[hart].append(instBytes)
+
+    def RARVACCR(self, hart, instSize, delay, dataSize, readPercent, startAddr, endAddr, addrInterval):
+        """
+        Random-Address & Random-Value Access Region
+        """
+        self.check_hart_buffer(hart)
+        opCode = OpCode["RARVACCR"]
+        readWeight = int((2**16 - 1) * readPercent)
+        inst = (instSize, opCode, delay, dataSize, 1<<2 | 1<<1 | 1, readWeight, startAddr, endAddr, addrInterval)
+        instFmt = "=BBHBBHQQQ"
+        instBytes = struct.pack(instFmt, *inst)
+        self.BinInstList[hart].append(instBytes)
+
 
     # Control Instructions
     def FENCE(self, hart, instSize, delay):
@@ -170,44 +198,44 @@ class BinaryInsts:
         self.BinInstList[hart].append(instBytes)
 
     # Randomized Instructions
-    def RALD():
+    def RALD(self):
         """
         Random-Address Load
         """
         raise NotImplementedError("Instructions currently not supported!")
 
-    def RAST():
+    def RAST(self):
         """
         Random-Address Store
         """
         raise NotImplementedError("Instructions currently not supported!")
 
 
-    def RARVST():
+    def RARVST(self):
         """
         Random-Address and Random-Value Store
         """
         raise NotImplementedError("Instructions currently not supported!")
 
-    def RALDR():
+    def RALDR(self):
         """
         Random-Address Load(Region)
         """
         raise NotImplementedError("Instructions currently not supported!")
 
-    def RASTR():
+    def RASTR(self):
         """
         Random-Address Store(Region)
         """
         raise NotImplementedError("Instructions currently not supported!")
 
-    def RVSTR():
+    def RVSTR(self):
         """
         Random-Value Store(Region)
         """
         raise NotImplementedError("Instructions currently not supported!")
 
-    def RARVSTR():
+    def RARVSTR(self):
         """
         Random-Address and Random-Value Store(Region)
         """
@@ -225,3 +253,26 @@ class BinaryInsts:
     def __init__(self) -> None:
         for redundantIR in instMap:
             exec(f"self.{redundantIR} = self.{instMap[redundantIR]}")
+
+    def load_IR(self, filePath):
+        with open(filePath, "r") as IRFile:
+            contents = IRFile.readlines()
+            IRLines = [line for line in contents if line]
+            for IRInst in IRLines:
+                exec(f"self.{IRInst}")
+
+
+    def dump_binary(self, dir: str, filePrefix: str):
+        # find max hart ID and generate instruction binaries for each hart
+        keyList = list(self.BinInstList.keys())
+        maxHart = max(keyList)
+        for hart in range(maxHart+1):
+            instFilePath = os.path.join(dir, f"{filePrefix}_{hart}.inst")
+            # Generate binary instructions file
+            if hart in self.BinInstList:
+                with open(instFilePath, "wb") as instFile:
+                    for instBytes in self.BinInstList[hart]:
+                        instFile.write(instBytes)
+            else:
+                instFile = open(instFilePath, "wb")
+                instFile.close()
