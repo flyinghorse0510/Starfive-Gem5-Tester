@@ -8,7 +8,10 @@ import pandas as pd
 import analyzer.CHID2D_analyzer as chid2da
 
 def analyze_rest(runtimeConfig: dict, extractedPars: dict, targetDir: str)-> dict :
-    ret = dict()
+    ret = {
+        "numGenCpus": util.getNumGenCpus(runtimeConfig),
+        "numGenDmas": util.getNumGenDmas(runtimeConfig)
+    }
     ret.update(chid2da.dump_parameters(runtimeConfig,extractedPars,targetDir))
     ret.update(chid2da.analyze_mshr_util(runtimeConfig,extractedPars,targetDir))
     return ret
@@ -31,14 +34,16 @@ def analyze_perceived_bandwidth(runtimeConfig: dict, extractedPars: dict, target
         and (cpuFinalLatency is not None)
         and (cpuNumReads is not None)
         and (cpuNumWrites is not None)
+        and (len(cpuTotalLatency) > 0)
     ) :
         assert(len(cpuFinalLatency)==len(cpuNumReads))
         assert(len(cpuFinalLatency)==len(cpuNumWrites))
         assert(len(cpuFinalLatency)==len(cpuTotalLatency))
         accesses = list(zip(cpuNumReads,cpuNumWrites,cpuFinalLatency,cpuTotalLatency))
         for rd,wr,finalLat,totalLat in accesses :
-            cpuPercvdBwList.append(float(64*(rd+wr))/(float(finalLat) / float(simFreq) * 1000 * 1000 * 1000))
-            cpuPercvdLatList.append(int(float(totalLat)/float((rd+wr)*ticksPerCycle)))
+            if finalLat > 0 :
+                cpuPercvdBwList.append(float(64*(rd+wr))/(float(finalLat) / float(simFreq) * 1000 * 1000 * 1000))
+                cpuPercvdLatList.append(int(float(totalLat)/float((rd+wr)*ticksPerCycle)))
 
     dmaFinalLatency  = util.check_and_fetch_key(extractedPars, "dmaFinalLatency")
     dmaTotalLatency  = util.check_and_fetch_key(extractedPars, "dmaTotalLatency")
@@ -47,20 +52,35 @@ def analyze_perceived_bandwidth(runtimeConfig: dict, extractedPars: dict, target
     dmaPercvdBwList  = []
     dmaPercvdLatList = []
     if (
-        (dmaFinalLatency is not None)
+        (dmaTotalLatency is not None)
+        and (dmaFinalLatency is not None)
         and (dmaNumReads is not None)
         and (dmaNumWrites is not None)
+        and (len(dmaTotalLatency) > 0)
     ) :
         assert(len(dmaFinalLatency)==len(dmaNumReads))
         assert(len(dmaFinalLatency)==len(dmaNumWrites))
         assert(len(dmaFinalLatency)==len(dmaTotalLatency))
         accesses = list(zip(dmaNumReads,dmaNumWrites,dmaFinalLatency,dmaTotalLatency))
         for rd,wr,finalLat,totalLat in accesses :
-            dmaPercvdBwList.append(float(64*(rd+wr))/(float(finalLat) / float(simFreq) * 1000 * 1000 * 1000))
-            dmaPercvdLatList.append(int(float(totalLat)/float((rd+wr)*ticksPerCycle)))
+            if finalLat > 0 :
+                dmaPercvdBwList.append(float(64*(rd+wr))/(float(finalLat) / float(simFreq) * 1000 * 1000 * 1000))
+                dmaPercvdLatList.append(int(float(totalLat)/float((rd+wr)*ticksPerCycle)))
+    cpuAvgLat = 0
+    if len(cpuPercvdLatList) > 0 :
+        cpuAvgLat = st.mean(cpuPercvdLatList)
+    cpuAvgBw  = 0
+    if len(cpuPercvdBwList) > 0 :
+        cpuAvgBw = st.mean(cpuPercvdBwList)
+    dmaAvgLat = 0
+    if len(dmaPercvdLatList) > 0 :
+        dmaAvgLat = st.mean(dmaPercvdLatList)
+    dmaAvgBw  = 0
+    if len(dmaPercvdBwList) > 0 :
+        dmaAvgBw = st.mean(dmaPercvdBwList)
     return {
-        'cpuPerceivedAvgLat': st.mean(cpuPercvdLatList),
-        'cpuPerceivedAvgBw': st.mean(cpuPercvdBwList),
-        'dmaPerceivedAvgLat': st.mean(dmaPercvdLatList),
-        'dmaPerceivedAvgBw': st.mean(dmaPercvdBwList)
+        'cpuPerceivedAvgLat': cpuAvgLat,
+        'cpuPerceivedAvgBw': cpuAvgBw,
+        'dmaPerceivedAvgLat': dmaAvgLat,
+        'dmaPerceivedAvgBw': dmaAvgBw
     }

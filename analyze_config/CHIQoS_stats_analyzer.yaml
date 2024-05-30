@@ -51,6 +51,9 @@ summary:
     - {data: "hostHours", head: "Run Time(h)"}
     - {data: "hostMemory", head: "Memory Usage"}
     - {data: "numNormDirs", head: "Memory Controllers(per Die)"}
+    - {data: "enable-qos-hnf", head: "QoS Enabled"}
+    - {data: "one_cpu_rnf_qpv", head: "QPV CPU"}
+    - {data: "one_cpu_dma_qpv", head: "QPV DMA"}
     - {data: "numGenCpus", head: "CPUs(total generating)"}
     - {data: "numGenDmas", head: "DMAs(total generating)"}
     - {data: "mem-test-type", head: "Memtest type"}

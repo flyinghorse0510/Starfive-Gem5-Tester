@@ -113,10 +113,10 @@ def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) 
     numHnfs    = util.check_and_fetch_key(runtimeConfig, "num-l3caches", 0)
     numGenCpus = util.getNumGenCpus(runtimeConfig)
     snfTbeUtil = util.check_and_fetch_key(extractedPars,"snfTbeUtil",0)
-    snfTbeUtilAvg = -1000000.0
-    haTbeUtilAvg  = -1000000.0
-    rnfTbeUtilAvg = -1000000.0
-    l1dTbeUtilAvg = -1000000.0
+    snfTbeUtilAvg = 0
+    haTbeUtilAvg  = 0
+    rnfTbeUtilAvg = 0
+    l1dTbeUtilAvg = 0
     hnfTbeUtil = util.check_and_fetch_key(extractedPars,"hnfTbeUtil",0)
     if hnfTbeUtil is not None :
         hnfTbeUtil = float(hnfTbeUtil)
@@ -129,16 +129,16 @@ def analyze_mshr_util(runtimeConfig: dict, extractedPars: dict, targetDir: str) 
         haTbeUtil = float(haTbeUtil)
         haTbeUtilAvg = haTbeUtil/numDirs
     rnfTbeUtil = util.check_and_fetch_key(extractedPars,"rnfTbeUtil",0)
-    if rnfTbeUtil is not None :
+    if ((rnfTbeUtil is not None) and (numGenCpus > 0)) :
         rnfTbeUtil = float(rnfTbeUtil)
         rnfTbeUtilAvg = rnfTbeUtil/numGenCpus
     l1dTbeUtil = util.check_and_fetch_key(extractedPars,"l1dTbeUtil",0)
-    if l1dTbeUtil is not None :
+    if ((l1dTbeUtil is not None) and (numGenCpus > 0)) :
         l1dTbeUtil = float(l1dTbeUtil)
         l1dTbeUtilAvg = l1dTbeUtil/numGenCpus
     l2RetryAcks = util.check_and_fetch_key(extractedPars,"l2RetryAcks",0)
-    l2RetryAcksAvg = -1000000.0
-    if l2RetryAcks is not None :
+    l2RetryAcksAvg = 0
+    if ((l2RetryAcks is not None) and (numGenCpus > 0)) :
         l2RetryAcks = float(l2RetryAcks)
         l2RetryAcksAvg = l2RetryAcks/numGenCpus
     l1dhits = util.check_and_fetch_key(extractedPars,"l1dhit",0)
