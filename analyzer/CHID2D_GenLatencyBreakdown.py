@@ -25,6 +25,7 @@ messages
 
 nocAgentPat1  = re.compile(r'system.ruby.networks(\d*)')
 nocAgentPat2  = re.compile(r'system.ruby.network')
+dmaAgentPat   = re.compile(r'system.ruby.dma_rni(\d*)')
 l1AgentPat    = re.compile(r'system.cpu(\d*).l1([id])')
 l2AgentPat    = re.compile(r'system.cpu(\d*).l2')
 hnfAgentPat1  = re.compile(r'system.ruby.hnfs(\d*).cntrl')
@@ -80,6 +81,8 @@ def getVnetId(opcode,msg_type):
           (opcode == 'CompDBIDResp') or
           (opcode == 'DBIDResp') or
           (opcode == 'Comp') or
+          (opcode == 'RetryAck') or
+          (opcode == 'PCrdGrant') or
           (opcode == 'CompAck') or
           (opcode == 'ReadReceipt') or
           (opcode == 'RespSepData') or
@@ -212,6 +215,7 @@ def translateAgentName(agent):
     snfAgentMtch2 = snfAgentPat2.search(agent)
     d2dNodeMtch   = d2dNodePat.search(agent)
     d2dBridgeMtch = d2dBridgePat.search(agent)
+    dmaAgentMtch  = dmaAgentPat.search(agent)
     if nocAgentMtch1 :
         return f'Die{nocAgentMtch1.group(1)}'
     if nocAgentMtch2 :
@@ -234,11 +238,14 @@ def translateAgentName(agent):
         return f'd2dNode{d2dNodeMtch.group(1)}'
     elif d2dBridgeMtch :
         return f'd2dBridge{d2dBridgeMtch.group(1)}'
+    elif dmaAgentMtch :
+        return f'dma{dmaAgentMtch.group(1)}'
     else :
         return 'NA'
 
 def genMessageLists(trcFile) -> Dict[str,Traversal]:
-    req_pat       = re.compile(r'^(\s*\d*): (\S+): txsn: (\S+), addr: (\S+), deq, RubyRequest')
+    ruby_req_pat  = re.compile(r'^(\s*\d*): (\S+): txsn: (\S+), addr: (\S+), deq, RubyRequest')
+    req_pat       = re.compile(r'^(\s*\d*): (\S+): txsn: (\S+), addr: (\S+), deq, CHIRequestMsg, ([a-zA-Z_]+), ([\-a-zA-Z\d]+), (retried|normal)')
     msg_pat       = re.compile(r'^(\s*\d*): (\S+): txsn: (\S+), addr: (\S+), deq, ([a-zA-Z_]+), ([a-zA-Z_]+)')
     allTxns       = dict()
     msgTypeToChannelMap = {
@@ -249,21 +256,30 @@ def genMessageLists(trcFile) -> Dict[str,Traversal]:
     with open(trcFile,mode='r') as f :
         lines = f.readlines()
         for l in lines :
-            req_match       = req_pat.search(l)
-            msg_match       = msg_pat.search(l)
+            ruby_req_match = ruby_req_pat.search(l)
+            msg_match      = msg_pat.search(l)
+            req_match      = req_pat.search(l)
             cyc      = -1
             txn      = 'NA'
             agent    = 'NA'
             addr     = 'NA'
             msg_type = 'NA'
             opcode   = 'NA'
-            if req_match :
-                cyc      = (int(req_match.group(1)))/500
-                agent    = req_match.group(2)
-                txn      = req_match.group(3)
-                addr     = req_match.group(4)
+            if ruby_req_match :
+                cyc      = (int(ruby_req_match.group(1)))/500
+                agent    = ruby_req_match.group(2)
+                txn      = ruby_req_match.group(3)
+                addr     = ruby_req_match.group(4)
                 msg_type = 'RubyRequest'
-                opcode   = 'NA' 
+                opcode   = 'NA'
+            elif req_match :
+                cyc        = (int(req_match.group(1)))/500
+                agent      = req_match.group(2)
+                txn        = req_match.group(3)
+                addr       = req_match.group(4)
+                opcode     = req_match.group(5)
+                reqtor     = req_match.group(6)
+                retriedTy  = req_match.group(7)
             elif msg_match :
                 cyc      = (int(msg_match.group(1)))/500
                 agent    = msg_match.group(2)

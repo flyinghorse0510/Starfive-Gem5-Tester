@@ -38,6 +38,12 @@ target:
       type: [int]
       reduce: "+="
     
+    hnfRetryAcks:
+      pattern: 'system.ruby.hnf[s]*(\d*).cntrl.retryAcks( +)(\d+)'
+      location: [3]
+      type: [int]
+      reduce: "+="
+    
     l1dhit:
       pattern: 'system.cpu(\d*).l1d.cache.m_demand_hits( +)(\d+)'
       location: [3]

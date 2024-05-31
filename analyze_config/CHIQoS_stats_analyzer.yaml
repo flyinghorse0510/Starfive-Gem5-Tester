@@ -14,6 +14,11 @@ target:
       pattern: 'system.cpu(\d*).numWrites( +)(\d+)'
       location: [3]
       type: [int]
+
+    cpuNumViolations:
+      pattern: 'system.cpu(\d*).numViolations( +)(\d+)'
+      location: [3]
+      type: [int]
     
     cpuTotalLatency:
       pattern: 'system.cpu(\d*).totalLatency( +)(\d+)'
@@ -72,12 +77,14 @@ summary:
     - {data: "workset", head: "Working Set"}
     - {data: "maxloads", head: "Load Factor"}
     - {data: "cpuPerceivedAvgLat", head: "CPU Read Latency(Cycles)"}
+    - {data: "cpuLatVio", head: "CPU Latency Violations"}
     - {data: "dmaPerceivedAvgLat", head: "DMA Read Latency(Cycles)"}
     - {data: "cpuPerceivedAvgBw", head: "CPU perceived bw"}
     - {data: "dmaPerceivedAvgBw", head: "DMA perceived bw"}
     - {data: "L1D_HitRate", head: "L1D_HitRate"}
     - {data: "L2_HitRate", head: "L2_HitRate"}
     - {data: "L3_HitRate", head: "L3_HitRate"}
+    - {data: "hnfRetryAcks", head: "HNF Retry Acks"}
     - {data: "sys-clock", head: "Frequency"}
     - {data: "dramRowHitRate", head: "DRAM Row Hit Rate"}
     - {data: "dramAvgAccLat", head: "DRAM Avg Acc Lat"}

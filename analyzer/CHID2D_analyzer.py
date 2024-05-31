@@ -6,18 +6,17 @@ import pprint as pp
 import pandas as pd
 
 def analyze_access_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
-    totalNumReads = check_and_fetch_key(extractedPars, "totalNumReads", 0)
-    totalNumWrites = check_and_fetch_key(extractedPars, "totalNumWrites", 0)
-    simTicks = check_and_fetch_key(extractedPars, "simTicks", 0)
-    simFreq = check_and_fetch_key(extractedPars, "simFreq", 0)
-    ticksPerCycle = check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
-    maxOutstand = check_and_fetch_key(runtimeConfig, "outstanding-req", 0)
+    totalCpuNumReads  = util.check_and_fetch_key(extractedPars, "totalCpuNumReads", 0)
+    totalCpuNumWrites = util.check_and_fetch_key(extractedPars, "totalCpuNumWrites", 0)
+    simTicks          = util.check_and_fetch_key(extractedPars, "simTicks", 0)
+    simFreq           = util.check_and_fetch_key(extractedPars, "simFreq", 0)
+    ticksPerCycle     = util.check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
+    maxOutstand       = util.check_and_fetch_key(runtimeConfig, "outstanding-req", 0)
 
     # if (maxOutstand is None) or (maxOutstand == 1):
     #     # return {}
 
-    numGenCpus = getNumGenCpus(runtimeConfig)
-    numGenCpus = getNumCpus(runtimeConfig) if numGenCpus is None else numGenCpus
+    numGenCpus = util.getNumGenCpus(runtimeConfig)
 
     totalReadBandwidth = None
     totalWriteBandwidth = None
@@ -421,7 +420,7 @@ def analyze_trace_request_latency(runtimeConfig: dict, extractedPars: dict, targ
 
 
 def analyze_trace_txn_breakdown_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> str:
-    brokenDownLatency = check_and_fetch_key(extractedPars, "BrokenDownLatency")
+    brokenDownLatency = util.check_and_fetch_key(extractedPars, "BrokenDownLatency")
     reqInfoDict = {}
     reqBreakdown = {}
     for latencyInfo in brokenDownLatency:

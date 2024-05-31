@@ -82,7 +82,7 @@ snf_allow_retry: [false]
 ## 8. Other Configuration
 enable-DMT: [false]
 enable-DCT: [false]
-inj-interval: [1]
+
 python-config-exclusive-pars:
   - python-config-exclusive-pars
   - d2d-link-config-list
@@ -112,3 +112,9 @@ extra_flags:
   - simple-physical-channels
   - ruby
   - disable-gclk-set
+
+
+## 11. QoS/Performance related parameters
+cpu-lat-deadline: [400]
+dma-lat-deadline: [400]
+inj-interval: [1]

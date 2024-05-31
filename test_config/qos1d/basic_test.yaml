@@ -32,18 +32,21 @@ num-dirs: [1]
 num-dmas: [1]
 
 # Hardcoded QPV
-enable-qos-hnf: [false, true]
+enable-qos-hnf: [false]
 one_cpu_rnf_qpv: [14]
 one_cpu_dma_qpv: [8]
 
 # Injection intervals
-cpu-inj-interval: ['1000']
+cpu-inj-interval: ['0','1000']
 dma-inj-interval: ['1']
+cpu-lat-deadline: [50]
 
 # Nogen CPUs/DMAs to suppress request
 
 # debug flags
 # debug_flags: ['RubyGenerated','RubyCHIDebugStr5','Starlink2QoS']
+# debug_flags: ['RubyGenerated']
+# debug_flags: ['MsgBufTrace']
 debug_flags: []
 # debug-end: [7238000]
 debug-end: []
@@ -53,12 +56,11 @@ debug-end: []
 l1d_size: [256B]
 l1i_size: [256B]
 l2_size: [512B]
-l3_size: [16KiB]       # size of each LLC
+l3_size: [256KiB]       # size of each LLC
 # working-set size
-size-ws: [131072]
-maxloads: [5]
+size-ws: [4096]
+maxloads: [100]
 
-# total size of accessed memory = size-ws * maxloads
 compose: [
   # Memory read bandwidth
   # {
