@@ -133,6 +133,7 @@ class AgentMsgTraversal(object):
     agent_name: str
     vnetId: int
     delta: float
+    retriedTy: bool
 
     def __lt__(self,other):
         return self.deq_time < other.deq_time
@@ -265,6 +266,7 @@ def genMessageLists(trcFile) -> Dict[str,Traversal]:
             addr     = 'NA'
             msg_type = 'NA'
             opcode   = 'NA'
+            retriedTy = 'normal'
             if ruby_req_match :
                 cyc      = (int(ruby_req_match.group(1)))/500
                 agent    = ruby_req_match.group(2)
@@ -296,7 +298,8 @@ def genMessageLists(trcFile) -> Dict[str,Traversal]:
                 deq_time = cyc,
                 vnetId = vnetId,
                 agent_name = translateAgentName(agent),
-                delta = 0.0
+                delta = 0.0,
+                retriedTy = (retriedTy == 'retried')
             )
             if txn != 'NA' and txn != '0x0000000000000000':
                 if txn in allTxns :

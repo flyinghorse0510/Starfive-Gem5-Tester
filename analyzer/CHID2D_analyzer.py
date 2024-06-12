@@ -267,7 +267,6 @@ def analyze_access_latency(runtimeConfig: dict, extractedPars: dict, targetDir: 
 def analyze_read_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
     return analyze_access_latency(runtimeConfig, extractedPars, targetDir)
     
-
 def dump_parameters(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict:
     numDies = util.check_and_fetch_key(runtimeConfig, "num-dies", 0)
     numDirs = util.check_and_fetch_key(runtimeConfig, "num-dirs", 0)
@@ -418,7 +417,6 @@ def analyze_trace_request_latency(runtimeConfig: dict, extractedPars: dict, targ
         dfX.to_csv(analyzeFile, index=False)
     return {}
 
-
 def analyze_trace_txn_breakdown_latency(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> str:
     brokenDownLatency = util.check_and_fetch_key(extractedPars, "BrokenDownLatency")
     reqInfoDict = {}
@@ -502,4 +500,19 @@ def analyze_trace_txn_breakdown_latency(runtimeConfig: dict, extractedPars: dict
         
     breakdownLatencyFile.close()
 
+    return {}
+
+def  analyze_trace_request_latency2(runtimeConfig: dict, extractedPars: dict, targetDir: str) -> dict :
+    ticksPerCycle = util.check_and_fetch_key(extractedPars, "ticksPerCycle", 0)
+    numReqMsg = len(extractedPars["SFReplMemTest"])
+    analyzeFile = os.path.join(targetDir, f"request_latency.csv")
+    with open(analyzeFile,'w') as f2 :
+        print(f'reqtor,addr,latency',file=f2)
+        for i in range(numReqMsg) :
+            reqMsg = extractedPars["SFReplMemTest"][i]
+            reqTick: int = int(reqMsg[0] / ticksPerCycle)
+            reqCpu: int = reqMsg[1]
+            reqAddr: str = reqMsg[2]
+            reqLat: int = reqMsg[3]
+            print(f'{reqCpu},{reqAddr},{reqLat}',file=f2)
     return {}

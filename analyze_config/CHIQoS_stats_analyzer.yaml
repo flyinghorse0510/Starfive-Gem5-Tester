@@ -59,8 +59,11 @@ summary:
     - {data: "enable-qos-hnf", head: "QoS Enabled"}
     - {data: "one_cpu_rnf_qpv", head: "QPV CPU"}
     - {data: "one_cpu_dma_qpv", head: "QPV DMA"}
+    - {data: "cpu-inj-interval", head: "CPU Inj Interval"}
+    - {data: "dma-inj-interval", head: "DMA Inj Interval"}
     - {data: "numGenCpus", head: "CPUs(total generating)"}
     - {data: "numGenDmas", head: "DMAs(total generating)"}
+    - {data: "numRNs", head: "RN(total generating)"}
     - {data: "mem-test-type", head: "Memtest type"}
     - {data: "outstanding-req", head: "CPU Max-Outstanding"}
     - {data: "AccPattern", head: "Access Pattern"}
@@ -73,7 +76,7 @@ summary:
     - {data: "l2_assoc", head: "L2 Assoc"}
     - {data: "l3_size", head: "L3 Size"}
     - {data: "l3_assoc", head: "L3 Assoc"}
-    - {data: "num-RNF-TBE", head: "L2 TBEs"}
+    - {data: "num-HNF-TBE", head: "HNF TBEs"}
     - {data: "workset", head: "Working Set"}
     - {data: "maxloads", head: "Load Factor"}
     - {data: "cpuPerceivedAvgLat", head: "CPU Read Latency(Cycles)"}

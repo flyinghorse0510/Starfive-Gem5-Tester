@@ -8,9 +8,13 @@ import pandas as pd
 import analyzer.CHID2D_analyzer as chid2da
 
 def analyze_rest(runtimeConfig: dict, extractedPars: dict, targetDir: str)-> dict :
+    numGenCpus = util.getNumGenCpus(runtimeConfig)
+    numGenDmas = util.getNumGenDmas(runtimeConfig)
+    # print(f'numGenCpus:{numGenCpus}, numGenDmas:{numGenDmas}, numRNs:{numGenCpus+numGenDmas}')
     ret = {
-        "numGenCpus": util.getNumGenCpus(runtimeConfig),
-        "numGenDmas": util.getNumGenDmas(runtimeConfig),
+        "numGenCpus": numGenCpus,
+        "numGenDmas": numGenDmas,
+        "numRNs": numGenCpus+numGenDmas,
         "hnfRetryAcks":  util.check_and_fetch_key(extractedPars, "hnfRetryAcks", 0)
     }
     ret.update(chid2da.dump_parameters(runtimeConfig,extractedPars,targetDir))

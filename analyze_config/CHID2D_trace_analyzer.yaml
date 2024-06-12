@@ -1,20 +1,13 @@
-include: ["analyze_config/CHID2D_stats_analyzer.yaml"]
+include: ["analyze_config/common_stats_analyzer.yaml"]
 WORKERS: 32
 callback:
-  "analyze_trace_request_latency": {file: "analyzer/CHID2D_analyzer", func: ["analyze_trace_request_latency"]}
-  # "analyze_trace_request_latency": {file: "analyzer/CHID2D_analyzer", func: ["analyze_trace_request_latency2"]}
-  # "analyze_trace_HA_dataIn": {file: "analyzer/CHID2D_Component_analyzer", func: ["analyze_trace_HA_dataIn"]}
-  # "analyze_network": {file: "analyzer/CHID2D_Netparse", func: ["get_avg_traffic"]}
+  "analyze_trace_request_latency": {file: "analyzer/CHID2D_analyzer", func: ["analyze_trace_request_latency2"]}
 
 target:
   "debug.trace":
     SFReplMemTest:
-      pattern: '(\d*): system.cpu(\d*): SFReplMemTest\|Addr:([0-9a-zA-Z]*),Iter:(\d*),Reqtor:(\d*),([0-9a-zA-Z]*):R'
-      location: [1, 2, 3, 4, 6]
-      type: [int, int, str, int, str]
-    # HADataInChannel:
-    #   pattern: '^\s*(\d*): system\.ruby\.(hAs\d+)\.cntrl\.datIn: txsn: (\S+), addr: (\S+), enq, ([a-zA-Z_]+), ([a-zA-Z_]+)'
-    #   location: [1, 2, 3, 4, 5, 6]
-    #   type: [int, str, str, str, str, str]
+      pattern: '^(\s*\d*): (\S+): ([0-9a-zA-Z]*),(\d+)'
+      location: [1, 2, 3, 4]
+      type: [int, str, str, int]
 
 summary: {}
