@@ -25,19 +25,12 @@ restore-with-cpu: ["O3CPU"]
 #   - "starfive_gem5_tester/img/parsec_scripts/swaptions_simsmall_2.rcS"
 
 script:
-  - "starfive_gem5_tester/img/parsec_scripts/blackscholes_simsmall_16.rcS"
-  - "starfive_gem5_tester/img/parsec_scripts/canneal_simsmall_16.rcS"
-  - "starfive_gem5_tester/img/parsec_scripts/facesim_simsmall_16.rcS"
-  - "starfive_gem5_tester/img/parsec_scripts/ferret_simsmall_16.rcS"
-  - "starfive_gem5_tester/img/parsec_scripts/fluidanimate_simsmall_16.rcS"
-  - "starfive_gem5_tester/img/parsec_scripts/freqmine_simsmall_16.rcS"
-  - "starfive_gem5_tester/img/parsec_scripts/streamcluster_simsmall_16.rcS"
-  - "starfive_gem5_tester/img/parsec_scripts/swaptions_simsmall_16.rcS"
+  - "/home/share/sdc_gem5_fs/parsec_scripts/blackscholes_simsmall_16.rcS"
 # prog-interval: ["25Hz"]
 # take-checkpoints: ["100000000,100000000"]
 checkpoint-restore: [1]
-# checkpoint-dir: ["2c2d_booted_ckpt"]
-disk-image: ["starfive_gem5_tester/img/disk_img/expanded-ubuntu-18.04-arm64-docker.img"]
+checkpoint-dir: ["2024-06-11-14:06:37_output"]
+# disk-image: ["starfive_gem5_tester/img/disk_img/expanded-ubuntu-18.04-arm64-docker.img"]
 # dtb-filename: ["starfive_gem5_tester/dtb/VExpress_GEM5_V1_2cpu_1die.dtb"]
 # debug_flags: ["RubyCacheTrace"]
 # debug-start: ["570000000000"]
