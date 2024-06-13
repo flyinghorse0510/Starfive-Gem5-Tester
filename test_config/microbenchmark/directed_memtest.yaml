@@ -1,0 +1,15 @@
+# Starfive Tester Base Config
+# *********************
+# [] represents an array, each element in which will be iterated and tested separately
+# i.e. num-cpus: [2,4], num-dirs: [2,4] means that there will be 4 tests in total
+# *********************
+
+# include other configuration files, included contents will be overwritten by this file if both fileds occur
+include: ['test_config/microbenchmark/CHID2D_base.yaml']
+
+mem-test-type: ["directed_test"]
+num-cpus: [4]
+num-dies: [2]
+
+trace-path: ["starfive_gem5_tester/tmp"]
+debug_flags: ["DirectedMemTest"]

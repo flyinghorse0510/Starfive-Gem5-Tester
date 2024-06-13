@@ -73,11 +73,18 @@ instMap = {
     "END_LOOP": "ELOOP",
     "NOP": "NOP",
     "RANDOM_VALUE_ACCESS_REGION": "RVACCR",
-    "RANDOM_ADDR_RANDOM_VALUE_ACCESS_REGION": "RARVACCR"
+    "RANDOM_ADDR_RANDOM_VALUE_ACCESS_REGION": "RARVACCR",
+    "RANDOM_ADDRESS_LOAD": "RALD",
+    "RANDOM_ADDRESS_STORE": "RAST",
+    "RANDOM_ADDRESS_RANDOM_VALUE_STORE": "RARVST",
+    "RANDOM_ADDRESS_LOAD_REGION": "RALDR",
+    "RANDOM_ADDRESS_STORE_REGION": "RASTR",
+    "RANDOM_ADDRESS_RANDOM_VALUE_STORE_REGION": "RARVSTR",
+    "DUMP": "DUMP",
+    "CLEAR": "CLEAR"
 }
 
 class BinaryInsts:
-    BinInstList = {}
 
     def check_hart_buffer(self, hart):
         if hart not in self.BinInstList:
@@ -161,7 +168,7 @@ class BinaryInsts:
         self.check_hart_buffer(hart)
         opCode = OpCode["FENCE"]
         inst = (instSize, opCode, delay)
-        instFmt = "BBHxxxx"
+        instFmt = "=BBHxxxx"
         instBytes = struct.pack(instFmt, *inst)
         self.BinInstList[hart].append(instBytes)
 
@@ -169,7 +176,7 @@ class BinaryInsts:
         self.check_hart_buffer(hart)
         opCode = OpCode["SYNC"]
         inst = (instSize, opCode, delay, channel, count)
-        instFmt = "BBHHH"
+        instFmt = "=BBHHH"
         instBytes = struct.pack(instFmt, *inst)
         self.BinInstList[hart].append(instBytes)
 
@@ -177,7 +184,7 @@ class BinaryInsts:
         self.check_hart_buffer(hart)
         opCode = OpCode["BLOOP"]
         inst = (instSize, opCode, delay, loopCount)
-        instFmt = "BBHL"
+        instFmt = "=BBHL"
         instBytes = struct.pack(instFmt, *inst)
         self.BinInstList[hart].append(instBytes)
 
@@ -185,7 +192,7 @@ class BinaryInsts:
         self.check_hart_buffer(hart)
         opCode = OpCode["ELOOP"]
         inst = (instSize, opCode, delay)
-        instFmt = "BBHxxxx"
+        instFmt = "=BBHxxxx"
         instBytes = struct.pack(instFmt, *inst)
         self.BinInstList[hart].append(instBytes)
     
@@ -193,64 +200,110 @@ class BinaryInsts:
         self.check_hart_buffer(hart)
         opCode = OpCode["NOP"]
         inst = (instSize, opCode, delay, extraDelay)
-        instFmt = "BBHL"
+        instFmt = "=BBHL"
         instBytes = struct.pack(instFmt, *inst)
         self.BinInstList[hart].append(instBytes)
 
     # Randomized Instructions
-    def RALD(self):
+    def RALD(self, hart, instSize, delay, loadSize, startAddr, endAddr, addrInterval):
         """
         Random-Address Load
         """
-        raise NotImplementedError("Instructions currently not supported!")
+        self.check_hart_buffer(hart)
+        opCode = OpCode["RALD"]
+        inst = (instSize, opCode, delay, loadSize, 1 << 1, startAddr, endAddr, addrInterval)
+        instFmt = "=BBHBBxxQQQ"
+        instBytes = struct.pack(instFmt, *inst)
+        self.BinInstList[hart].append(instBytes)
 
-    def RAST(self):
+    def RAST(self, hart, instSize, delay, storeSize, startAddr, endAddr, addrInterval, storeData: int):
         """
         Random-Address Store
         """
-        raise NotImplementedError("Instructions currently not supported!")
+        self.check_hart_buffer(hart)
+        opCode = OpCode["RAST"]
+        dataBytes = storeData.to_bytes(storeSize, "little")
+        inst = (instSize, opCode, delay, storeSize, 1 << 1, startAddr, endAddr, addrInterval)
+        instFmt = "=BBHBBxxQQQ"
+        instBytes = struct.pack(instFmt, *inst)
+        self.BinInstList[hart].append(instBytes + dataBytes)
 
-
-    def RARVST(self):
+    def RARVST(self, hart, instSize, delay, storeSize, startAddr, endAddr, addrInterval):
         """
         Random-Address and Random-Value Store
         """
-        raise NotImplementedError("Instructions currently not supported!")
+        self.check_hart_buffer(hart)
+        opCode = OpCode["RARVST"]
+        inst = (instSize, opCode, delay, storeSize, 1 << 2 | 1 << 1, startAddr, endAddr, addrInterval)
+        instFmt = "=BBHBBxxQQQ"
+        instBytes = struct.pack(instFmt, *inst)
+        self.BinInstList[hart].append(instBytes)
 
-    def RALDR(self):
+    def RALDR(self, hart, instSize, delay, loadSize, startAddr, endAddr, addrInterval):
         """
         Random-Address Load(Region)
         """
-        raise NotImplementedError("Instructions currently not supported!")
+        self.check_hart_buffer(hart)
+        opCode = OpCode["RALDR"]
+        inst = (instSize, opCode, delay, loadSize, 1 << 1 | 1, startAddr, endAddr, addrInterval)
+        instFmt = "=BBHBBxxQQQ"
+        instBytes = struct.pack(instFmt, *inst)
+        self.BinInstList[hart].append(instBytes)
 
-    def RASTR(self):
+    def RASTR(self, hart, instSize, delay, storeSize, startAddr, endAddr, addrInterval, storeData: int):
         """
         Random-Address Store(Region)
         """
-        raise NotImplementedError("Instructions currently not supported!")
+        self.check_hart_buffer(hart)
+        opCode = OpCode["RASTR"]
+        dataBytes = storeData.to_bytes(storeSize, "little")
+        inst = (instSize, opCode, delay, storeSize, 1 << 1 | 1, startAddr, endAddr, addrInterval)
+        instFmt = "=BBHBBxxQQQ"
+        instBytes = struct.pack(instFmt, *inst)
+        self.BinInstList[hart].append(instBytes + dataBytes)
 
-    def RVSTR(self):
+    def RVSTR(self, hart, instSize, delay, storeSize, startAddr, endAddr, addrInterval):
         """
         Random-Value Store(Region)
         """
-        raise NotImplementedError("Instructions currently not supported!")
+        self.check_hart_buffer(hart)
+        opCode = OpCode["RVSTR"]
+        inst = (instSize, opCode, delay, storeSize, 1 << 2 | 1, startAddr, endAddr, addrInterval)
+        instFmt = "=BBHBBxxQQQ"
+        instBytes = struct.pack(instFmt, *inst)
+        self.BinInstList[hart].append(instBytes)
 
-    def RARVSTR(self):
+    def RARVSTR(self, hart, instSize, delay, storeSize, startAddr, endAddr, addrInterval):
         """
         Random-Address and Random-Value Store(Region)
         """
-        raise NotImplementedError("Instructions currently not supported!")
+        self.check_hart_buffer(hart)
+        opCode = OpCode["RARVSTR"]
+        inst = (instSize, opCode, delay, storeSize, 1 << 2 | 1 << 1 | 1, startAddr, endAddr, addrInterval)
+        instFmt = "=BBHBBxxQQQ"
+        instBytes = struct.pack(instFmt, *inst)
+        self.BinInstList[hart].append(instBytes)
 
 
     # Special Instructions
-    def DUMP():
-        raise NotImplementedError("Instructions currently not supported!")
+    def DUMP(self, hart, instSize):
+        self.check_hart_buffer(hart)
+        opCode = OpCode["DUMP"]
+        inst = (instSize, opCode, 1)
+        instFmt = "=BBHxxxx"
+        instBytes = struct.pack(instFmt, *inst)
+        self.BinInstList[hart].append(instBytes)
 
-    def CLEAR():
-        raise NotImplementedError("Instructions currently not supported!")
-    
+    def CLEAR(self, hart, instSize):
+        self.check_hart_buffer(hart)
+        opCode = OpCode["CLEAR"]
+        inst = (instSize, opCode, 1)
+        instFmt = "=BBHxxxx"
+        instBytes = struct.pack(instFmt, *inst)
+        self.BinInstList[hart].append(instBytes)    
 
     def __init__(self) -> None:
+        self.BinInstList = {}
         for redundantIR in instMap:
             exec(f"self.{redundantIR} = self.{instMap[redundantIR]}")
 

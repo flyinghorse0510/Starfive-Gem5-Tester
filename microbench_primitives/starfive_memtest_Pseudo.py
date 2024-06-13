@@ -53,10 +53,11 @@ def get_int_list(hartList):
   
 
 class PseudoInst:
-    PseudoInstList = []
-    IRInstList = []
-    SyncChannel = 0
+    
     def __init__(self) -> None:
+        self.PseudoInstList = []
+        self.IRInstList = []
+        self.SyncChannel = 0
         pass
 
     def load(self, hartList, addrList, loadSizeList, delayList = 1):
@@ -85,7 +86,7 @@ class PseudoInst:
         self.PseudoInstList.append(f"store(hartList={hartList}, addrList={addrList}, storeSizeList={storeSizeList}, storeDataList={storeDataList}, delayList={delayList}, useRandomValueList={useRandomValueList})")
         for i in range(hartCount):
             if useRandomValueList[i] == 0:
-                self.IRInstList.append(f"STORE(hart={hartList[i]}, instSize={2+math.ceil(storeSizeList[i] / 8)}, delay={delayList[i]}, storeSize={storeSizeList[i]}, addr={addrList[i]}, storeData={storeDataList[i]})")
+                self.IRInstList.append(f"STORE(hart={hartList[i]}, instSize={2+math.ceil(storeSizeList[i] / 8.0)}, delay={delayList[i]}, storeSize={storeSizeList[i]}, addr={addrList[i]}, storeData={storeDataList[i]})")
             else:
                 self.IRInstList.append(f"RANDOM_VALUE_STORE(hart={hartList[i]}, instSize=2, delay={delayList[i]}, storeSize={storeSizeList[i]}, addr={addrList[i]})")
 
@@ -103,7 +104,7 @@ class PseudoInst:
         for i in range(hartCount):
             self.IRInstList.append(f"LOAD_REGION(hart={hartList[i]}, instSize=4, delay={delayList[i]}, loadSize={loadSizeList[i]}, startAddr={startAddrList[i]}, endAddr={endAddrList[i]}, addrInterval={addrIntervalList[i]})")
 
-    def store_region(self, hartList, storeSizeList, storeDataList, startAddrList, endAddrList, addrIntervalList = 0x40, delayList = 1, useRandomValueList = 1):
+    def store_region(self, hartList, storeSizeList,  startAddrList, endAddrList, storeDataList = 0, addrIntervalList = 0x40, delayList = 1, useRandomValueList = 1):
         """
         Issue Region Store Instruction (IR ==> STR, RVSTR)
         """
@@ -118,7 +119,7 @@ class PseudoInst:
         self.PseudoInstList.append(f"store_region(hartList={hartList}, storeSizeList={storeSizeList}, storeDataList={storeDataList}, startAddrList={startAddrList}, endAddrList={endAddrList}, addrIntervalList={addrIntervalList}, delayList={delayList}, useRandomValueList={useRandomValueList})")
         for i in range(hartCount):
             if useRandomValueList[i] == 0:
-                self.IRInstList.append(f"STORE_REGION(hart={hartList[i]}, instSize={2+math.ceil(storeSizeList[i] / 8)}, delay={delayList[i]}, storeSize={storeSizeList[i]}, startAddr={startAddrList[i]}, endAddr={endAddrList[i]}, addrInterval={addrIntervalList[i]}, storeData={storeDataList[i]})")
+                self.IRInstList.append(f"STORE_REGION(hart={hartList[i]}, instSize={4+math.ceil(storeSizeList[i] / 8.0)}, delay={delayList[i]}, storeSize={storeSizeList[i]}, startAddr={startAddrList[i]}, endAddr={endAddrList[i]}, addrInterval={addrIntervalList[i]}, storeData={storeDataList[i]})")
             else:
                 self.IRInstList.append(f"RANDOM_VALUE_STORE_REGION(hart={hartList[i]}, instSize=4, delay={delayList[i]}, storeSize={storeSizeList[i]}, startAddr={startAddrList[i]}, endAddr={endAddrList[i]}, addrInterval={addrIntervalList[i]})")
 
@@ -146,7 +147,7 @@ class PseudoInst:
         startAddrList = convert_to_hex_list(hartCount, startAddrList)
         endAddrList = convert_to_hex_list(hartCount, endAddrList)
         addrIntervalList = convert_to_hex_list(hartCount, addrIntervalList)
-        readPercentList = convert_to_hex_list(hartCount, readPercentList)
+        readPercentList = convert_to_float_list(hartCount, readPercentList)
         delayList = convert_to_hex_list(hartCount, delayList)
         self.PseudoInstList.append(f"random_access_region(hartList={hartList}, dataSizeList={dataSizeList}, startAddrList={startAddrList}, endAddrList={endAddrList}, addrIntervalList={addrIntervalList}, readPercentList={readPercentList}, delayList={delayList})")
         for i in range(hartCount):
@@ -195,7 +196,7 @@ class PseudoInst:
         for i in range(hartCount):
             self.IRInstList.append(f"END_LOOP(hart={hartList[i]}, instSize=1, delay={delayList[i]})")
 
-    def nop(self, hartList, delayList = 1, extradelayList = 1):
+    def nop(self, hartList, delayList = 1, extraDelayList = 1):
         """
         Issue Nop Instruction (IR ==> NOP)
         """
@@ -206,20 +207,95 @@ class PseudoInst:
         for i in range(hartCount):
             self.IRInstList.append(f"NOP(hart={hartList[i]}, instSize=1, delay={delayList[i]}, extraDelay={extraDelayList[i]})")
 
-    def random_addr_load(self) -> list:
-        raise NotImplementedError("Operations currently not supported!")
+    def random_addr_load(self, hartList, loadSizeList, startAddrList, endAddrList, addrIntervalList = 0x40, delayList = 1):
+        """
+        Issue Random-Address Load Instruction (IR ==> RALD)
+        """
+        hartCount, hartList = get_int_list(hartList)
+        startAddrList = convert_to_hex_list(hartCount, startAddrList)
+        endAddrList = convert_to_hex_list(hartCount, endAddrList)
+        addrIntervalList = convert_to_hex_list(hartCount, addrIntervalList)
+        loadSizeList = convert_to_hex_list(hartCount, loadSizeList)
+        delayList = convert_to_hex_list(hartCount, delayList)
 
-    def random_addr_store(self) -> list:
-        raise NotImplementedError("Operations currently not supported!")
+        self.PseudoInstList.append(f"random_addr_load(hartList={hartList}, loadSizeList={loadSizeList}, startAddrList={startAddrList}, endAddrList={endAddrList}, addrIntervalList={addrIntervalList}, delayList={delayList})")
+        for i in range(hartCount):
+            self.IRInstList.append(f"RANDOM_ADDRESS_LOAD(hart={hartList[i]}, instSize=4, delay={delayList[i]}, loadSize={loadSizeList[i]}, startAddr={startAddrList[i]}, endAddr={endAddrList[i]}, addrInterval={addrIntervalList[i]})")
 
-    def random_addr_load_region(self) -> list:
-        raise NotImplementedError("Operations currently not supported!")
+    def random_addr_store(self, hartList, storeSizeList, startAddrList, endAddrList, storeDataList = 0, addrIntervalList = 0x40, delayList = 1, useRandomValueList = 1):
+        """
+        Issue Random-Address Store Instruction (IR ==> RAST, RARVST)
+        """
+        hartCount, hartList = get_int_list(hartList)
+        startAddrList = convert_to_hex_list(hartCount, startAddrList)
+        endAddrList = convert_to_hex_list(hartCount, endAddrList)
+        addrIntervalList = convert_to_hex_list(hartCount, addrIntervalList)
+        storeSizeList = convert_to_hex_list(hartCount, storeSizeList)
+        storeDataList = convert_to_hex_list(hartCount, storeDataList)
+        delayList = convert_to_hex_list(hartCount, delayList)
+        useRandomValueList = convert_to_hex_list(hartCount, useRandomValueList)
+        self.PseudoInstList.append(f"random_addr_store(hartList={hartList}, storeSizeList={storeSizeList}, storeDataList={storeDataList}, startAddrList={startAddrList}, endAddrList={endAddrList}, addrIntervalList={addrIntervalList}, delayList={delayList}, useRandomValueList={useRandomValueList})")
+        for i in range(hartCount):
+            if useRandomValueList[i] == 0:
+                self.IRInstList.append(f"RANDOM_ADDRESS_STORE(hart={hartList[i]}, instSize={4+math.ceil(storeSizeList[i] / 8.0)}, delay={delayList[i]}, storeSize={storeSizeList[i]}, startAddr={startAddrList[i]}, endAddr={endAddrList[i]}, addrInterval={addrIntervalList[i]}, storeData={storeDataList[i]})")
+            else:
+                self.IRInstList.append(f"RANDOM_ADDRESS_RANDOM_VALUE_STORE(hart={hartList[i]}, instSize=4, delay={delayList[i]}, storeSize={storeSizeList[i]}, startAddr={startAddrList[i]}, endAddr={endAddrList[i]}, addrInterval={addrIntervalList[i]})")
 
-    def random_addr_store_region(self) -> list:
-        raise NotImplementedError("Operations currently not supported!")
+    def random_addr_load_region(self, hartList, loadSizeList, startAddrList, endAddrList, addrIntervalList = 0x40, delayList = 1):
+        """
+        Issue Random-Address Load Region Instruction (IR ==> RALDR)
+        """
+        hartCount, hartList = get_int_list(hartList)
+        startAddrList = convert_to_hex_list(hartCount, startAddrList)
+        endAddrList = convert_to_hex_list(hartCount, endAddrList)
+        addrIntervalList = convert_to_hex_list(hartCount, addrIntervalList)
+        loadSizeList = convert_to_hex_list(hartCount, loadSizeList)
+        delayList = convert_to_hex_list(hartCount, delayList)
+        self.PseudoInstList.append(f"random_addr_load_region(hartList={hartList}, loadSizeList={loadSizeList}, startAddrList={startAddrList}, endAddrList={endAddrList}, addrIntervalList={addrIntervalList}, delayList={delayList})")
+        for i in range(hartCount):
+            self.IRInstList.append(f"RANDOM_ADDRESS_LOAD_REGION(hart={hartList[i]}, instSize=4, delay={delayList[i]}, loadSize={loadSizeList[i]}, startAddr={startAddrList[i]}, endAddr={endAddrList[i]}, addrInterval={addrIntervalList[i]})")
+        
+    def random_addr_store_region(self, hartList, storeSizeList, startAddrList, endAddrList, storeDataList = 0, addrIntervalList = 0x40, delayList = 1, useRandomValueList = 1):
+        """
+        Issue Random-Address Store Region Instruction (IR ==> RASTR, RARVSTR)
+        """
+        hartCount, hartList = get_int_list(hartList)
+        startAddrList = convert_to_hex_list(hartCount, startAddrList)
+        endAddrList = convert_to_hex_list(hartCount, endAddrList)
+        addrIntervalList = convert_to_hex_list(hartCount, addrIntervalList)
+        storeSizeList = convert_to_hex_list(hartCount, storeSizeList)
+        storeDataList = convert_to_hex_list(hartCount, storeDataList)
+        delayList = convert_to_hex_list(hartCount, delayList)
+        useRandomValueList = convert_to_hex_list(hartCount, useRandomValueList)
+        self.PseudoInstList.append(f"random_addr_store_region(hartList={hartList}, storeSizeList={storeSizeList}, storeDataList={storeDataList}, startAddrList={startAddrList}, endAddrList={endAddrList}, addrIntervalList={addrIntervalList}, delayList={delayList}, useRandomValueList={useRandomValueList})")
+        for i in range(hartCount):
+            if useRandomValueList[i] == 0:
+                self.IRInstList.append(f"RANDOM_ADDRESS_STORE_REGION(hart={hartList[i]}, instSize={4+math.ceil(storeSizeList[i] / 8.0)}, delay={delayList[i]}, storeSize={storeSizeList[i]}, startAddr={startAddrList[i]}, endAddr={endAddrList[i]}, addrInterval={addrIntervalList[i]}, storeData={storeDataList[i]})")
+            else:
+                self.IRInstList.append(f"RANDOM_ADDRESS_RANDOM_VALUE_STORE_REGION(hart={hartList[i]}, instSize=4, delay={delayList[i]}, storeSize={storeSizeList[i]}, startAddr={startAddrList[i]}, endAddr={endAddrList[i]}, addrInterval={addrIntervalList[i]})")
 
-    def dump(self) -> list:
-        raise NotImplementedError("Operations currently not supported!")
+    def dump(self, hartId: int = 0):
+        """
+        Issue Dump Instruction (IR ==> DUMP)
+        By default, this instruction will be executed on Tester 0
+        """
+        if type(hartId) != int:
+            raise ValueError(f"hartId can only be int type! got {type(hartId)}")
+        
+        self.PseudoInstList.append(f"dump(hartId={hartId})")
+        self.IRInstList.append(f"DUMP(hart={hartId}, instSize=1)")
+    
+    def clear(self, hartId: int = 0):
+        """
+        Issue Clear Instruction (IR ==> CLEAR)
+        By default, this instruction will be executed on Tester 0
+        """
+        if type(hartId) != int:
+            raise ValueError(f"hartId can only be int type! got {type(hartId)}")
+        
+        self.PseudoInstList.append(f"clear(hartId={hartId})")
+        self.IRInstList.append(f"CLEAR(hart={hartId}, instSize=1)")
+
     
     def load_pseudo(self, filePath: str) -> str:
         with open(filePath, "r") as pseudoFile:

@@ -59,17 +59,17 @@ def clean_dir(path: str, extName: str = None):
 
 # get repo root directory
 def get_repo_root() -> str:
-    filePath = os.path.dirname(__file__)
+    filePath = os.path.dirname(os.path.abspath(__file__))
     return os.path.split(filePath)[0]
 
 
 # get script directory
 def get_script_root() -> str:
-    filePath = os.path.dirname(__file__)
+    filePath = os.path.dirname(os.path.abspath(__file__))
     return filePath
 
 def get_script_name() -> str:
-    fileName = os.path.basename(__file__)
+    fileName = os.path.dirname(os.path.abspath(__file__))
     return fileName
 
 # recursively load yaml configs with `include` field
