@@ -315,7 +315,7 @@ class BinaryInsts:
                 exec(f"self.{IRInst}")
 
 
-    def dump_binary(self, dir: str, filePrefix: str):
+    def dump_binary(self, dir: str, filePrefix: str = "memtrace"):
         # find max hart ID and generate instruction binaries for each hart
         keyList = list(self.BinInstList.keys())
         maxHart = max(keyList)

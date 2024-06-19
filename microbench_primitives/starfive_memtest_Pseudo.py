@@ -305,14 +305,14 @@ class PseudoInst:
                 exec(f"self.{pseudoInst}")
         return filePath
 
-    def dump_pseudo(self, dir: str, filePrefix: str) -> str:
+    def dump_pseudo(self, dir: str, filePrefix: str = "memtrace") -> str:
         pseudoFilePath = os.path.join(dir, f"{filePrefix}.pseudo")
         with open(pseudoFilePath, "w") as pseudoFile:
             for pseudoInst in self.PseudoInstList:
                 pseudoFile.write(f"{pseudoInst}\n")
         return pseudoFilePath
 
-    def dump_IR(self, dir: str, filePrefix: str) -> str:
+    def dump_IR(self, dir: str, filePrefix: str = "memtrace") -> str:
         IRFilePath = os.path.join(dir, f"{filePrefix}.IR")
         with open(IRFilePath, "w") as IRFile:
             for IRInst in self.IRInstList:

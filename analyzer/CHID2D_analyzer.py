@@ -22,6 +22,11 @@ def analyze_access_bandwidth(runtimeConfig: dict, extractedPars: dict, targetDir
     totalWriteBandwidth = None
     normReadBandwidth = None
     normWriteBandwidth = None
+    totalCpuReadBandwidth = None
+    totalCpuWriteBandwidth = None
+    normCpuReadBandwidth = None
+    normCpuWriteBandwidth = None
+    
     if (
         ((numGenCpus is not None) and (numGenCpus > 0))
         and ((totalCpuNumReads is not None) and (totalCpuNumReads >= 0))
